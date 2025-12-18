@@ -11,7 +11,8 @@ const NotificationBell = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  // Fetch notifications from API
+  
+
   const { data: notifications = [], refetch: refetchNotifications } = useQuery(
     ['notifications'],
     async () => {
@@ -26,14 +27,17 @@ const NotificationBell = () => {
       }
     },
     {
-      refetchInterval: 10000, // Refresh every 10 seconds for better responsiveness
+      refetchInterval: 10000, 
+
       refetchOnWindowFocus: true,
       retry: 3,
-      staleTime: 5000 // Consider data stale after 5 seconds
+      staleTime: 5000 
+
     }
   );
 
-  // Fetch unread count
+  
+
   const { data: unreadCount = 0, refetch: refetchUnreadCount } = useQuery(
     ['unreadNotificationCount'],
     async () => {
@@ -48,7 +52,8 @@ const NotificationBell = () => {
       }
     },
     {
-      refetchInterval: 10000, // Refresh every 10 seconds
+      refetchInterval: 10000, 
+
       refetchOnWindowFocus: true,
       retry: 3,
       staleTime: 5000
@@ -61,7 +66,8 @@ const NotificationBell = () => {
       onSuccess: () => {
         queryClient.invalidateQueries(['notifications']);
         queryClient.invalidateQueries(['unreadNotificationCount']);
-        // Also manually refetch to ensure UI updates immediately
+        
+
         refetchNotifications();
         refetchUnreadCount();
       },
@@ -74,7 +80,8 @@ const NotificationBell = () => {
       onSuccess: () => {
         queryClient.invalidateQueries(['notifications']);
         queryClient.invalidateQueries(['unreadNotificationCount']);
-        // Also manually refetch to ensure UI updates immediately
+        
+
         refetchNotifications();
         refetchUnreadCount();
       },

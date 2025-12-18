@@ -16,12 +16,13 @@ import {
   LogOut,
   User,
   Building2,
-  Leaf
+  Leaf,
+  ShoppingBag
 } from 'lucide-react';
 import './Sidebar.css';
 import { getLogoUrl } from '../../utils/imageUtils';
 
-const Sidebar = () => {
+const Sidebar = ({ className = '' }) => {
   const { user, isAuthenticated, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -39,7 +40,8 @@ const Sidebar = () => {
     return location.pathname === path || location.pathname.startsWith(path + '/');
   };
 
-  // Admin menu items
+  
+
   const adminMenuItems = [
     { path: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/users', label: 'Users', icon: User },
@@ -53,7 +55,8 @@ const Sidebar = () => {
     { path: '/settings', label: 'Settings', icon: Settings },
   ];
 
-  // Farmer menu items
+  
+
   const farmerMenuItems = [
     { path: '/farmer/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/farmer/earnings', label: 'Earnings & Wallet', icon: CreditCard },
@@ -65,19 +68,20 @@ const Sidebar = () => {
     { path: '/settings', label: 'Settings', icon: Settings },
   ];
 
-  // Buyer menu items
+  
+
   const buyerMenuItems = [
     { path: '/buyer/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { path: '/inventory', label: 'Browse Crops', icon: Leaf },
+    { path: '/browse-crops', label: 'Browse Crops', icon: ShoppingBag },
     { path: '/transactions', label: 'My Purchases', icon: CreditCard },
     { path: '/receipts', label: 'Receipts', icon: FileText },
     { path: '/messages', label: 'Messages', icon: Mail },
     { path: '/profile', label: 'Profile', icon: User },
     { path: '/settings', label: 'Settings', icon: Settings },
-    { path: '/transactions', label: 'Payments', icon: CreditCard },
   ];
 
-  // Storekeeper menu items
+  
+
   const storekeeperMenuItems = [
     { path: '/storekeeper/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/storekeeper/shipments', label: 'Shipments', icon: Package },
@@ -88,7 +92,8 @@ const Sidebar = () => {
     { path: '/settings', label: 'Settings', icon: Settings },
   ];
 
-  // Get menu items based on user role
+  
+
   const getMenuItems = () => {
     if (!user) return [];
 
@@ -109,7 +114,7 @@ const Sidebar = () => {
   const menuItems = getMenuItems();
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${className}`}>
       <div className="sidebar-header">
         <Link to="/" className="sidebar-logo-link">
           <img src={getLogoUrl()} alt="Rangira Logo" className="sidebar-logo-img" />
@@ -139,17 +144,27 @@ const Sidebar = () => {
       <div className="sidebar-footer">
         <div className="sidebar-profile">
           <Link to="/profile" className="sidebar-profile-link">
-            {user?.profilePictureUrl ? (
-              <img
-                src={user.profilePictureUrl.startsWith('http')
-                  ? user.profilePictureUrl
-                  : user.profilePictureUrl.startsWith('/api/')
-                    ? `http://localhost:8080${user.profilePictureUrl}`
-                    : `http://localhost:8080/api/files/profile-pictures/${user.profilePictureUrl}`}
-                alt="Profile"
-                className="sidebar-profile-picture"
-              />
-            ) : (
+            {(user?.profilePictureUrl || user?.userProfile?.profilePictureUrl) ? (() => {
+              const pictureUrl = user.profilePictureUrl || user.userProfile?.profilePictureUrl;
+              const imageSrc = pictureUrl?.startsWith('http')
+                ? pictureUrl
+                : pictureUrl?.startsWith('/api/')
+                  ? `http://localhost:8080${pictureUrl}`
+                  : `http://localhost:8080/api/files/profile-pictures/${pictureUrl}`;
+              return (
+                <img
+                  src={imageSrc}
+                  alt="Profile"
+                  className="sidebar-profile-picture"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    if (e.target.nextElementSibling) {
+                      e.target.nextElementSibling.style.display = 'flex';
+                    }
+                  }}
+                />
+              );
+            })() : (
               <div className="sidebar-profile-avatar">
                 <User size={18} />
               </div>

@@ -1382,13 +1382,23 @@ section,
   border-radius: 0;
 }
 
-.call-to-action .content .btn:hover,
-.call-to-action .content .btn:active,
-.call-to-action .content .btn:focus {
+.call-to-action .content .btn:hover:not(.newsletter-subscribe-btn),
+.call-to-action .content .btn:active:not(.newsletter-subscribe-btn),
+.call-to-action .content .btn:focus:not(.newsletter-subscribe-btn) {
   box-shadow: none;
   outline: none;
   background-color: var(--contrast-color);
   border: 1px solid var(--contrrast-color);
+}
+
+/* Newsletter subscribe button - keep dark on hover */
+.call-to-action .content .newsletter-subscribe-btn:hover,
+.call-to-action .content .newsletter-subscribe-btn:active,
+.call-to-action .content .newsletter-subscribe-btn:focus {
+  background-color: #0a3d1a !important;
+  color: var(--contrast-color, #ffffff) !important;
+  border-color: #0a3d1a !important;
+  box-shadow: 0 4px 8px rgba(17, 101, 48, 0.3);
 }
 
 /*--------------------------------------------------------------

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { dataService } from '../services/dataService';
 import Sidebar from '../components/layout/Sidebar';
-
+import DashboardHeader from '../components/dashboard/DashboardHeader';
 import DataTable from '../components/tables/DataTable';
 import Button from '../components/common/Button';
 import { Plus, Pencil, Trash2, FileDown, Building2, Eye } from 'lucide-react';
@@ -19,7 +19,8 @@ const Warehouses = () => {
   const [page, setPage] = useState(0);
   const [size] = useState(10);
 
-  // Fetch all warehouses for search (use large page size to get all records)
+  
+
   const { data: allWarehousesData } = useQuery(
     'warehouses-all-for-search',
     () => dataService.getWarehouses({ page: 0, size: 10000, sort: 'warehouseName,asc' }),
@@ -29,15 +30,18 @@ const Warehouses = () => {
     }
   );
 
-  // Fetch paginated warehouses for display
+  
+
   const { data, isLoading, error } = useQuery(
     ['warehouses', page, size],
     () => dataService.getWarehouses({ page, size, sort: 'warehouseName,asc' }),
     { keepPreviousData: true }
   );
 
-  // Use all warehouses for search, paginated for display
-  // Handle both paginated (with content) and list (direct array) responses
+  
+
+  
+
   const warehousesForTable =
     allWarehousesData?.data?.content ||
     (Array.isArray(allWarehousesData?.data) ? allWarehousesData.data : []) ||
@@ -45,7 +49,8 @@ const Warehouses = () => {
     (Array.isArray(data?.data) ? data.data : []) ||
     [];
 
-  // Fetch warehouse accesses to get storekeeper information
+  
+
   const { data: warehouseAccessesData } = useQuery(
     'warehouse-accesses-for-storekeepers',
     () => dataService.getWarehouseAccesses({}),
@@ -55,7 +60,8 @@ const Warehouses = () => {
     }
   );
 
-  // Create a map of warehouse ID to storekeeper
+  
+
   const warehouseStorekeeperMap = useMemo(() => {
     const map = new Map();
     if (warehouseAccessesData?.data) {
@@ -63,10 +69,8 @@ const Warehouses = () => {
         ? warehouseAccessesData.data
         : warehouseAccessesData.data.content || [];
 
-      console.log('Warehouse accesses data:', accesses); // Debug log
-
       accesses.forEach(access => {
-        // Check if this is a MANAGER level access that's active
+
         const isManager = access.accessLevel === 'MANAGER' || access.accessLevel === 'Manager';
         const isActive = access.isActive === true || access.isActive === 'true';
         const isStorekeeper = access.user?.userType === 'STOREKEEPER' || access.user?.userType === 'Storekeeper';
@@ -77,8 +81,6 @@ const Warehouses = () => {
           const lastName = access.user?.lastName || '';
           const fullName = `${firstName} ${lastName}`.trim() || access.user?.email || 'Unknown';
 
-          console.log(`Mapping warehouse ${warehouseId} to storekeeper: ${fullName}`); // Debug log
-
           map.set(warehouseId, {
             id: access.user?.id || access.userId,
             name: fullName,
@@ -87,7 +89,6 @@ const Warehouses = () => {
         }
       });
     }
-    console.log('Final warehouse-storekeeper map:', Array.from(map.entries())); // Debug log
     return map;
   }, [warehouseAccessesData]);
 
@@ -181,16 +182,6 @@ const Warehouses = () => {
             onClick={() => navigate(`/warehouses/${row.id}`)}
             className="btn-icon"
             title="View Details"
-            style={{
-              background: 'transparent',
-              border: '1px solid #ddd',
-              borderRadius: '4px',
-              padding: '6px 8px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
           >
             <Eye size={16} />
           </button>
@@ -198,16 +189,6 @@ const Warehouses = () => {
             onClick={() => navigate(`/warehouses/edit/${row.id}`)}
             className="btn-icon"
             title="Edit Warehouse"
-            style={{
-              background: 'transparent',
-              border: '1px solid #ddd',
-              borderRadius: '4px',
-              padding: '6px 8px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
           >
             <Pencil size={16} />
           </button>
@@ -216,17 +197,7 @@ const Warehouses = () => {
             className="btn-icon btn-danger"
             title="Delete Warehouse"
             disabled={deleteMutation.isLoading}
-            style={{
-              background: 'transparent',
-              border: '1px solid #ef4444',
-              borderRadius: '4px',
-              padding: '6px 8px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#ef4444'
-            }}
+          >
           >
             <Trash2 size={16} />
           </button>
@@ -250,6 +221,7 @@ const Warehouses = () => {
     <div className="page">
       <Sidebar />
       <div className="page-container">
+        <DashboardHeader />
         {user?.userType === 'ADMIN' && (
           <div className="page-actions" style={{ marginBottom: '24px', display: 'flex', gap: '12px' }}>
             <Button
@@ -274,10 +246,34 @@ const Warehouses = () => {
           data={warehousesForTable}
           columns={columns}
           loading={isLoading}
-          pagination={true}
+          pagination={!!allWarehousesData?.data}
           pageSize={size}
           columnSearchable={true}
         />
+
+        {!allWarehousesData?.data && (data?.data?.totalPages || 0) > 1 && (
+          <div className="pagination-controls">
+            <Button
+              variant="secondary"
+              size="small"
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={page === 0}
+            >
+              Previous
+            </Button>
+            <span>
+              Page {page + 1} of {data?.data?.totalPages || 1}
+            </span>
+            <Button
+              variant="secondary"
+              size="small"
+              onClick={() => setPage((p) => p + 1)}
+              disabled={page >= (data?.data?.totalPages || 1) - 1}
+            >
+              Next
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

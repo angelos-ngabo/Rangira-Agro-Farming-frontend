@@ -41,7 +41,7 @@ const Footer = () => {
               </ul>
             </div>
 
-            {/* Empty columns to match grid if needed, or just let these expand */}
+            {}
           </div>
         </div>
       </div>

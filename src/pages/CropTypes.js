@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { dataService } from '../services/dataService';
 import Sidebar from '../components/layout/Sidebar';
 
+import DashboardHeader from '../components/dashboard/DashboardHeader';
 import DataTable from '../components/tables/DataTable';
 import Button from '../components/common/Button';
 import { Plus, Pencil, Trash2, FileDown, Sprout, Eye } from 'lucide-react';
@@ -19,22 +20,26 @@ const CropTypes = () => {
   const [page, setPage] = useState(0);
   const [size] = useState(10);
 
-  // Fetch all crop types for search
+  
+
   const { data: allCropTypesData } = useQuery(
     'cropTypes-all-for-search',
     () => dataService.getCropTypes({ page: 0, size: 10000, sort: 'cropName,asc' }),
     { staleTime: 30000 }
   );
 
-  // Fetch paginated crop types for display
+  
+
   const { data, isLoading, error } = useQuery(
     ['cropTypes', page, size],
     () => dataService.getCropTypes({ page, size, sort: 'cropName,asc' }),
     { keepPreviousData: true }
   );
 
-  // Use all crop types for search, paginated for display
-  // Handle both paginated (with content) and list (direct array) responses
+  
+
+  
+
   const cropTypesForTable =
     allCropTypesData?.data?.content ||
     (Array.isArray(allCropTypesData?.data) ? allCropTypesData.data : []) ||
@@ -143,6 +148,7 @@ const CropTypes = () => {
     <div className="page">
       <Sidebar />
       <div className="page-container">
+        <DashboardHeader />
         <div className="page-actions" style={{ marginBottom: '24px', display: 'flex', gap: '12px' }}>
           {user?.userType === 'ADMIN' && (
             <Button
@@ -167,12 +173,12 @@ const CropTypes = () => {
           data={cropTypesForTable}
           columns={columns}
           loading={isLoading}
-          pagination={true}
+          pagination={!!allCropTypesData?.data}
           pageSize={size}
           columnSearchable={true}
         />
 
-        {data?.data?.totalPages > 1 && (
+        {!allCropTypesData?.data && data?.data?.totalPages > 1 && (
           <div className="pagination-controls">
             <button
               onClick={() => setPage((p) => Math.max(0, p - 1))}

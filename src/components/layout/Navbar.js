@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { getLogoUrl } from '../../utils/imageUtils';
+import PublicGlobalSearch from '../search/PublicGlobalSearch';
 
 const Navbar = () => {
   const { user, logout, isAuthenticated } = useAuth();
@@ -25,7 +26,8 @@ const Navbar = () => {
     setDropdownOpen(!dropdownOpen);
   };
 
-  // Close mobile menu on route change
+  
+
   useEffect(() => {
     setMobileMenuOpen(false);
     document.body.classList.remove('mobile-nav-active');
@@ -35,7 +37,7 @@ const Navbar = () => {
     <header id="header" className="header d-flex align-items-center position-relative">
       <div className="container-fluid container-xl position-relative d-flex align-items-center justify-content-between">
         <Link to="/" className="logo d-flex align-items-center">
-          {/* Use template logo or fallback to text if image missing */}
+          {}
           <img src={getLogoUrl()} alt="Rangira Agro Farming" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block' }} />
           <h1 className="sitename" style={{ display: 'none' }}>Rangira</h1>
         </Link>
@@ -69,6 +71,9 @@ const Navbar = () => {
             </li>
 
             <li><NavLink to="/contact" className={({ isActive }) => isActive ? "active" : ""}>Contact</NavLink></li>
+            <li className="nav-search-item">
+              <PublicGlobalSearch />
+            </li>
           </ul>
           <i
             className={`mobile-nav-toggle d-xl-none bi ${mobileMenuOpen ? 'bi-x' : 'bi-list'}`}

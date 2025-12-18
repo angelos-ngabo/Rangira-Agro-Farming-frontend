@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { dataService } from '../services/dataService';
 import { useQuery } from 'react-query';
 import Sidebar from '../components/layout/Sidebar';
+import DashboardHeader from '../components/dashboard/DashboardHeader';
 import Button from '../components/common/Button';
 import { User, Camera, Save, Lock, Mail, Phone, MapPin } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -15,7 +16,8 @@ const Profile = () => {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
 
-  // Fetch full user details to get userCode and status
+  
+
   const { data: fullUserData } = useQuery(
     ['userDetails', user?.id],
     async () => {
@@ -24,14 +26,14 @@ const Profile = () => {
         const response = await dataService.getUserById(user.id);
         return response.data || response;
       } catch (error) {
-        console.error('Error fetching user details:', error);
         return null;
       }
     },
     { enabled: !!user?.id, staleTime: 30000 }
   );
 
-  // Use full user data if available, otherwise fall back to user from context
+  
+
   const displayUser = fullUserData || user;
 
   const [formData, setFormData] = useState({
@@ -41,7 +43,8 @@ const Profile = () => {
     phoneNumber: displayUser?.phoneNumber || '',
   });
 
-  // Update form data when user data changes
+  
+
   useEffect(() => {
     if (displayUser) {
       setFormData({
@@ -61,13 +64,15 @@ const Profile = () => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Validate file type
+    
+
     if (!file.type.startsWith('image/')) {
       toast.error('Please select an image file');
       return;
     }
 
-    // Validate file size (max 5MB)
+    
+
     if (file.size > 5 * 1024 * 1024) {
       toast.error('Image size must be less than 5MB');
       return;
@@ -80,7 +85,8 @@ const Profile = () => {
 
       const response = await dataService.uploadProfilePicture(user.id, formData);
 
-      // Update user in context - handle both userProfile and direct profilePictureUrl
+      
+
       const responseData = response.data || response;
       const updatedProfilePictureUrl = responseData?.profilePictureUrl ||
         responseData?.userProfile?.profilePictureUrl;
@@ -114,7 +120,8 @@ const Profile = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      // Only send fields that have been changed and are not empty
+      
+
       const updateData = {};
       if (formData.firstName && formData.firstName.trim() !== displayUser?.firstName) {
         updateData.firstName = formData.firstName.trim();
@@ -122,12 +129,14 @@ const Profile = () => {
       if (formData.lastName && formData.lastName.trim() !== displayUser?.lastName) {
         updateData.lastName = formData.lastName.trim();
       }
-      // Email cannot be changed by user
+      
+
       if (formData.phoneNumber && formData.phoneNumber.trim() !== displayUser?.phoneNumber) {
         updateData.phoneNumber = formData.phoneNumber.trim();
       }
 
-      // Only make API call if there are changes
+      
+
       if (Object.keys(updateData).length === 0) {
         toast('No changes to save', { icon: 'ℹ️' });
         setLoading(false);
@@ -137,7 +146,8 @@ const Profile = () => {
       const response = await dataService.updateUserProfile(user.id, updateData);
       const updatedUserData = response.data || response;
 
-      // Update user in context with the response data
+      
+
       updateUser({
         firstName: updatedUserData.firstName || displayUser.firstName,
         lastName: updatedUserData.lastName || displayUser.lastName,
@@ -148,7 +158,6 @@ const Profile = () => {
     } catch (error) {
       const errorMessage = error.response?.data?.message || error.message || 'Failed to update profile';
       toast.error(errorMessage);
-      console.error('Profile update error:', error);
     } finally {
       setLoading(false);
     }
@@ -181,8 +190,9 @@ const Profile = () => {
     <div className="page">
       <Sidebar />
       <div className="page-container">
+        <DashboardHeader />
         <div className="profile-container">
-          {/* Profile Picture Section */}
+          {}
           <div className="profile-picture-section">
             <div className="profile-picture-wrapper">
               {(displayUser?.profilePictureUrl || displayUser?.userProfile?.profilePictureUrl) ? (() => {
@@ -246,7 +256,7 @@ const Profile = () => {
             <p className="profile-email">{displayUser?.email}</p>
           </div>
 
-          {/* Profile Information Form */}
+          {}
           <div className="profile-form-section">
             <form onSubmit={handleSubmit} className="profile-form">
               <div className="form-section">

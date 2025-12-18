@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { dataService } from '../services/dataService';
 import Sidebar from '../components/layout/Sidebar';
 
+import DashboardHeader from '../components/dashboard/DashboardHeader';
 import DataTable from '../components/tables/DataTable';
 import Button from '../components/common/Button';
 import { Plus } from 'lucide-react';
@@ -16,16 +17,20 @@ const Ratings = () => {
   const [page, setPage] = useState(0);
   const [size] = useState(10);
 
-  // For admin: show all ratings with full transaction details
-  // For storekeeper: show all ratings they created
+  
+
+  
+
   const { data, isLoading, error } = useQuery(
     ['ratings', page, size, user?.userType],
     () => {
       if (user?.userType === 'ADMIN') {
-        // Admin sees all ratings with full details
+        
+
         return dataService.getRatings({ page, size, sort: 'createdAt,desc' });
       } else if (user?.userType === 'STOREKEEPER') {
-        // Storekeeper sees their own ratings
+        
+
         return dataService.getRatings({ page, size, sort: 'createdAt,desc', raterId: user.id });
       }
       return dataService.getRatings({ page, size, sort: 'createdAt,desc' });
@@ -153,6 +158,7 @@ const Ratings = () => {
     <div className="page">
       <Sidebar />
       <div className="page-container">
+        <DashboardHeader />
         {user?.userType === 'STOREKEEPER' && (
           <div className="page-actions" style={{ marginBottom: '24px' }}>
             <Button

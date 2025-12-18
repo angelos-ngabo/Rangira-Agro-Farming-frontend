@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import './DataTable.css';
 
@@ -7,21 +7,27 @@ const DataTable = ({
   columns = [],
   onRowClick,
   searchable = true,
-  columnSearchable = true, // Enable column-specific search
+  columnSearchable = true,
   pagination = true,
   pageSize = 10,
   loading = false,
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
-  const [columnFilters, setColumnFilters] = useState({}); // Column-specific filters
+  const [columnFilters, setColumnFilters] = useState({});
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
 
-  // Filter data based on search query and column filters
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [data, searchQuery, columnFilters]);
+
+  
+
   const filteredData = useMemo(() => {
     let filtered = data;
 
-    // Apply global search
+    
+
     if (searchQuery) {
       filtered = filtered.filter((row) =>
         columns.some((col) => {
@@ -31,7 +37,8 @@ const DataTable = ({
       );
     }
 
-    // Apply column-specific filters
+    
+
     if (columnSearchable && Object.keys(columnFilters).length > 0) {
       filtered = filtered.filter((row) => {
         return Object.entries(columnFilters).every(([columnKey, filterValue]) => {
@@ -47,7 +54,8 @@ const DataTable = ({
     return filtered;
   }, [data, searchQuery, columnFilters, columns, columnSearchable]);
 
-  // Sort data
+  
+
   const sortedData = useMemo(() => {
     if (!sortConfig.key) return filteredData;
 
@@ -62,7 +70,8 @@ const DataTable = ({
     });
   }, [filteredData, sortConfig]);
 
-  // Paginate data
+  
+
   const paginatedData = useMemo(() => {
     if (!pagination) return sortedData;
 

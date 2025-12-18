@@ -59,7 +59,7 @@ const TwoFactorAuth = () => {
     <div className="contact-page">
       <Navbar />
       <main className="main">
-        {/* Page Title */}
+        {}
         <div
           className="page-title dark-background"
           data-aos="fade"
@@ -77,7 +77,7 @@ const TwoFactorAuth = () => {
           </div>
         </div>
 
-        {/* Contact Section */}
+        {}
         <section id="contact" className="contact section">
           <div className="container" data-aos="fade">
             <div className="row gy-5 gx-lg-5 justify-content-center">

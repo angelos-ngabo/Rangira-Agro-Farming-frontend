@@ -3,12 +3,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Navbar from '../components/layout/Navbar';
 import { getHeroImageUrl, getImage } from '../utils/imageUtils';
+import NewsletterForm from '../components/common/NewsletterForm';
 
 const LandingPage = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user, loading } = useAuth();
 
-  // Redirect authenticated users to their dashboard
+  
+
   useEffect(() => {
     if (!loading && isAuthenticated && user) {
       const dashboardPath = user.userType === 'ADMIN' ? '/admin/dashboard' :
@@ -20,7 +22,8 @@ const LandingPage = () => {
     }
   }, [isAuthenticated, user, loading, navigate]);
 
-  // Initialize Swiper
+  
+
   useEffect(() => {
     const initSwiper = () => {
       document.querySelectorAll(".rangira-swiper").forEach(function (swiperElement) {
@@ -58,7 +61,8 @@ const LandingPage = () => {
       });
     };
 
-    // Small delay to ensure DOM is ready if needed, or just run it
+    
+
     const timer = setTimeout(initSwiper, 100);
     return () => clearTimeout(timer);
   }, []);
@@ -72,7 +76,7 @@ const LandingPage = () => {
       <Navbar />
 
       <main className="main">
-        {/* Hero Section */}
+        {}
         <section id="hero" className="hero section dark-background">
           <div id="hero-carousel" className="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="5000">
 
@@ -330,12 +334,7 @@ const LandingPage = () => {
                   </p>
                 </div>
                 <div className="col-lg-6">
-                  <form className="form-subscribe php-email-form">
-                    <div className="form-group d-flex align-items-stretch">
-                      <input type="email" name="email" className="form-control h-100" placeholder="Enter your e-mail" />
-                      <input type="submit" className="btn btn-secondary px-4" value="Subscribe" />
-                    </div>
-                  </form>
+                  <NewsletterForm />
                 </div>
               </div>
             </div>

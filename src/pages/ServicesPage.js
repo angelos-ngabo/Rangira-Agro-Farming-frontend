@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
 import { getImage } from '../utils/imageUtils';
+import NewsletterForm from '../components/common/NewsletterForm';
 
 
 const ServicesPage = () => {
@@ -10,7 +11,7 @@ const ServicesPage = () => {
       <Navbar />
 
       <main className="main">
-        {/* Page Title */}
+        {}
         <div
           className="page-title dark-background"
           data-aos="fade"
@@ -28,7 +29,7 @@ const ServicesPage = () => {
           </div>
         </div>
 
-        {/* Services Section */}
+        {}
         <section id="services" className="services section">
           <div className="container section-title" data-aos="fade-up">
             <h2>SERVICES</h2>
@@ -147,7 +148,7 @@ const ServicesPage = () => {
           </div>
         </section>
 
-        {/* About Section (Why Choose Us) */}
+        {}
         <section id="about" className="about section">
           <div className="content">
             <div className="container">
@@ -205,12 +206,7 @@ const ServicesPage = () => {
                   </p>
                 </div>
                 <div className="col-lg-6">
-                  <form className="form-subscribe php-email-form">
-                    <div className="form-group d-flex align-items-stretch">
-                      <input type="email" name="email" className="form-control h-100" placeholder="Enter your e-mail" />
-                      <input type="submit" className="btn btn-secondary px-4" value="Subscribe" />
-                    </div>
-                  </form>
+                  <NewsletterForm />
                 </div>
               </div>
             </div>

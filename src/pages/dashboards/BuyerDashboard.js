@@ -6,10 +6,12 @@ import { dataService } from '../../services/dataService';
 import Sidebar from '../../components/layout/Sidebar';
 import Button from '../../components/common/Button';
 import NotificationBell from '../../components/dashboard/NotificationBell';
+import DashboardHeader from '../../components/dashboard/DashboardHeader';
 import RatingModal from '../../components/modals/RatingModal';
 import { ShoppingCart, Package, DollarSign, CheckCircle, Clock, CreditCard, Truck, Eye, MessageSquare, MapPin, TrendingUp, PackageCheck, Star, Lock, Settings } from 'lucide-react';
 import toast from 'react-hot-toast';
 import '../Dashboard.css';
+import './BuyerDashboard.css';
 
 const BuyerDashboard = () => {
   const { user } = useAuth();
@@ -18,7 +20,8 @@ const BuyerDashboard = () => {
   const [ratingModalOpen, setRatingModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
 
-  // Fetch buyer's enquiries
+  
+
   const { data: myEnquiries } = useQuery(
     ['buyerEnquiries', user?.id],
     async () => {
@@ -34,7 +37,8 @@ const BuyerDashboard = () => {
     { enabled: !!user?.id }
   );
 
-  // Fetch buyer's transactions
+  
+
   const { data: myTransactions } = useQuery(
     ['buyerTransactions', user?.id],
     async () => {
@@ -50,19 +54,22 @@ const BuyerDashboard = () => {
     { enabled: !!user?.id, refetchInterval: 30000 }
   );
 
-  // Calculate statistics - use useMemo to compute paidTransactions
+  
+
   const paidTransactions = useMemo(() => {
     return myTransactions?.filter(t => t.paymentStatus === 'PAID') || [];
   }, [myTransactions]);
 
-  // Get delivered transaction IDs for query key
+  
+
   const deliveredTransactionIds = useMemo(() => {
     return paidTransactions
       .filter(t => t.deliveryStatus === 'DELIVERED')
       .map(t => t.id);
   }, [paidTransactions]);
 
-  // Fetch ratings for delivered transactions to check which ones have been rated
+  
+
   const { data: transactionRatings } = useQuery(
     ['transactionRatings', user?.id, deliveredTransactionIds],
     async () => {
@@ -97,7 +104,45 @@ const BuyerDashboard = () => {
   const processingOrders = paidTransactions.filter(t => t.deliveryStatus === 'PROCESSING').length;
   const pendingDelivery = paidTransactions.filter(t => t.deliveryStatus === 'PENDING' && t.paymentStatus === 'PAID').length;
 
-  // Confirm receipt mutation
+  
+
+  
+
+  const { data: availableInventory } = useQuery(
+    ['availableInventory', user?.id],
+    async () => {
+      if (!user?.id) return [];
+      try {
+        
+
+        
+
+        const response = await dataService.getAvailableInventories();
+        const allInventory = response.data || [];
+        
+
+        return allInventory
+          .filter(inv => inv.remainingQuantityKg > 0 && (inv.status === 'STORED' || inv.status === 'PARTIALLY_SOLD'))
+          .slice(0, 6);
+      } catch (error) {
+        console.error('Error fetching inventory:', error);
+        
+
+        try {
+          const fallback = await dataService.getInventory({ page: 0, size: 6, status: 'STORED' });
+          const inventory = fallback.data?.content || fallback.data || [];
+          return inventory.filter(inv => inv.remainingQuantityKg > 0);
+        } catch (fallbackError) {
+          return [];
+        }
+      }
+    },
+    { enabled: !!user?.id, staleTime: 30000, refetchInterval: 60000 }
+  );
+
+
+  
+
   const confirmReceiptMutation = useMutation(
     (transactionId) => dataService.updateDeliveryStatus(transactionId, 'DELIVERED'),
     {
@@ -105,18 +150,21 @@ const BuyerDashboard = () => {
         toast.success('Order marked as delivered successfully!');
         queryClient.invalidateQueries(['buyerTransactions', user?.id]);
 
-        // Find the transaction and show rating modal
+        
+
         setTimeout(() => {
           queryClient.invalidateQueries(['buyerTransactions', user?.id]);
           queryClient.refetchQueries(['buyerTransactions', user?.id]).then(() => {
-            // Check if rating already exists
+            
+
             dataService.getRatingsByTransaction(transactionId)
               .then((ratingsResponse) => {
                 const ratings = ratingsResponse?.data || [];
                 const hasRating = ratings.some(r => r.rater?.id === user?.id);
 
                 if (!hasRating) {
-                  // Get fresh transaction data
+                  
+
                   const freshTransactions = queryClient.getQueryData(['buyerTransactions', user?.id]);
                   const transaction = freshTransactions?.data?.find(t => t.id === transactionId) ||
                     paidTransactions.find(t => t.id === transactionId);
@@ -129,7 +177,8 @@ const BuyerDashboard = () => {
                 }
               })
               .catch(() => {
-                // If check fails, still show rating modal
+                
+
                 const transaction = paidTransactions.find(t => t.id === transactionId);
                 if (transaction) {
                   setSelectedTransaction(transaction);
@@ -155,20 +204,12 @@ const BuyerDashboard = () => {
     <div className="dashboard">
       <Sidebar />
       <div className="dashboard-container">
-        <div className="dashboard-header">
-          <div className="header-left">
-            <h1>Buyer Dashboard</h1>
-            <p>Welcome back, {user?.firstName}!</p>
-          </div>
-          <div className="header-right">
-            <NotificationBell />
-            <Link to="/inventory" className="btn-primary">
-              <ShoppingCart size={20} />
-              Browse Marketplace
-            </Link>
-          </div>
-        </div>
+        <DashboardHeader 
+          title="Buyer Dashboard"
+          subtitle="Track your purchases, payments, and deliveries"
+        />
 
+        {}
         <div className="stats-grid">
           <div className="stat-card" style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', color: 'white' }}>
             <div className="stat-icon" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
@@ -243,7 +284,103 @@ const BuyerDashboard = () => {
           </div>
         </div >
 
-        {/* Pending Payments Section */}
+        {}
+        {availableInventory && availableInventory.length > 0 && (
+          <div className="dashboard-section" style={{ marginBottom: '32px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2>Available Crops ({availableInventory.length})</h2>
+              <Button
+                variant="outline"
+                icon={Eye}
+                onClick={() => navigate('/browse-crops')}
+              >
+                View All
+              </Button>
+            </div>
+            <div className="items-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
+              {availableInventory.slice(0, 6).map((item) => {
+                const imageUrl = item.cropImageUrl || item.cropType?.imageUrl;
+                const price = item.cropType?.pricePerKg || 0;
+                const hasPendingEnquiry = myEnquiries?.some(e => e.inventory?.id === item.id && e.status === 'PENDING');
+                const hasAcceptedEnquiry = myEnquiries?.some(e => e.inventory?.id === item.id && e.status === 'ACCEPTED');
+                
+                return (
+                  <div key={item.id} className="item-card">
+                    <div className="item-image">
+                      {imageUrl ? (
+                        <img
+                          src={imageUrl.startsWith('http') 
+                            ? imageUrl 
+                            : `http://localhost:8080/api/files/crop-types/${imageUrl}`}
+                          alt={item.cropType?.cropName || 'Crop'}
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            if (e.target.nextElementSibling) {
+                              e.target.nextElementSibling.style.display = 'flex';
+                            }
+                          }}
+                        />
+                      ) : (
+                        <div className="item-image-placeholder">
+                          <Package size={32} />
+                        </div>
+                      )}
+                    </div>
+                    <div className="item-content">
+                      <h3>{item.cropType?.cropName || 'Unknown Crop'}</h3>
+                      <div className="item-price">
+                        RWF {price.toLocaleString()} / {item.cropType?.measurementUnit || 'KG'}
+                      </div>
+                      <div className="item-details">
+                        <p><strong>Available:</strong> {parseFloat(item.remainingQuantityKg || 0).toFixed(2)} {item.cropType?.measurementUnit || 'KG'}</p>
+                        <p><strong>Farmer:</strong> {item.farmer?.firstName || ''} {item.farmer?.lastName || ''}</p>
+                        {item.warehouse?.warehouseName && (
+                          <p><strong>Warehouse:</strong> {item.warehouse.warehouseName}</p>
+                        )}
+                        {item.qualityGrade && (
+                          <p><strong>Grade:</strong> {item.qualityGrade}</p>
+                        )}
+                      </div>
+                      {hasPendingEnquiry ? (
+                        <div style={{ padding: '8px', background: '#fff3cd', borderRadius: '4px', textAlign: 'center', fontSize: '14px', color: '#856404', marginTop: '12px' }}>
+                          Enquiry Pending
+                        </div>
+                      ) : hasAcceptedEnquiry ? (
+                        <Button
+                          variant="success"
+                          icon={CreditCard}
+                          onClick={() => {
+                            const acceptedEnquiry = myEnquiries.find(e => e.inventory?.id === item.id && e.status === 'ACCEPTED');
+                            const transactionId = acceptedEnquiry?.transaction?.id || acceptedEnquiry?.transactionId;
+                            if (transactionId) {
+                              navigate(`/payment/${transactionId}`);
+                            } else {
+                              toast.error('Transaction not found for accepted enquiry');
+                            }
+                          }}
+                          style={{ width: '100%', marginTop: '12px' }}
+                        >
+                          Proceed to Payment
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="primary"
+                          icon={MessageSquare}
+                          onClick={() => navigate(`/inventory?inventoryId=${item.id}&action=enquiry`)}
+                          style={{ width: '100%', marginTop: '12px' }}
+                        >
+                          Send Enquiry
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {}
         {
           pendingPayments.length > 0 && (
             <div className="dashboard-section" style={{ marginBottom: '32px' }}>
@@ -314,7 +451,7 @@ const BuyerDashboard = () => {
           )
         }
 
-        {/* Shipment Status Tracking Section */}
+        {}
         {
           paidTransactions.filter(t => t.deliveryStatus === 'SHIPPED' || t.deliveryStatus === 'PROCESSING').length > 0 && (
             <div className="dashboard-section" style={{ marginBottom: '32px' }}>
@@ -334,12 +471,17 @@ const BuyerDashboard = () => {
                             Transaction: {transaction.transactionCode}
                           </p>
                         </div>
-                        <span className={`badge badge-${transaction.deliveryStatus?.toLowerCase()}`}>
-                          {transaction.deliveryStatus}
-                        </span>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                          <span className={`badge badge-${transaction.paymentStatus?.toLowerCase() || 'secondary'}`}>
+                            Payment: {transaction.paymentStatus || 'N/A'}
+                          </span>
+                          <span className={`badge badge-${transaction.deliveryStatus?.toLowerCase() || 'secondary'}`}>
+                            Delivery: {transaction.deliveryStatus || 'N/A'}
+                          </span>
+                        </div>
                       </div>
                       <div className="transaction-details">
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '16px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '16px' }}>
                           <div>
                             <p style={{ color: '#666', fontSize: '12px', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                               <Package size={14} />
@@ -351,11 +493,24 @@ const BuyerDashboard = () => {
                           </div>
                           <div>
                             <p style={{ color: '#666', fontSize: '12px', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              <MapPin size={14} />
-                              Status
+                              <CreditCard size={14} />
+                              Payment Status
                             </p>
                             <p style={{ fontWeight: '600' }}>
-                              {transaction.deliveryStatus === 'SHIPPED' ? 'On the Way' : 'Processing'}
+                              <span className={`badge badge-${transaction.paymentStatus?.toLowerCase() || 'secondary'}`}>
+                                {transaction.paymentStatus || 'N/A'}
+                              </span>
+                            </p>
+                          </div>
+                          <div>
+                            <p style={{ color: '#666', fontSize: '12px', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <Truck size={14} />
+                              Delivery Status
+                            </p>
+                            <p style={{ fontWeight: '600' }}>
+                              <span className={`badge badge-${transaction.deliveryStatus?.toLowerCase() || 'secondary'}`}>
+                                {transaction.deliveryStatus === 'SHIPPED' ? 'On the Way' : transaction.deliveryStatus === 'PROCESSING' ? 'Processing' : transaction.deliveryStatus || 'N/A'}
+                              </span>
                             </p>
                           </div>
                           <div>
@@ -407,7 +562,7 @@ const BuyerDashboard = () => {
           )
         }
 
-        {/* Active Transactions */}
+        {}
         {
           paidTransactions.filter(t => t.deliveryStatus === 'PENDING' && t.paymentStatus === 'PAID').length > 0 && (
             <div className="dashboard-section" style={{ marginBottom: '32px' }}>
@@ -424,12 +579,17 @@ const BuyerDashboard = () => {
                             Transaction: {transaction.transactionCode}
                           </p>
                         </div>
-                        <span className={`badge badge-${transaction.deliveryStatus?.toLowerCase()}`}>
-                          {transaction.deliveryStatus}
-                        </span>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                          <span className={`badge badge-${transaction.paymentStatus?.toLowerCase() || 'secondary'}`}>
+                            Payment: {transaction.paymentStatus || 'N/A'}
+                          </span>
+                          <span className={`badge badge-${transaction.deliveryStatus?.toLowerCase() || 'secondary'}`}>
+                            Delivery: {transaction.deliveryStatus || 'N/A'}
+                          </span>
+                        </div>
                       </div>
                       <div className="transaction-details">
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '16px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '16px' }}>
                           <div>
                             <p style={{ color: '#666', fontSize: '12px', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                               <Package size={14} />
@@ -450,11 +610,24 @@ const BuyerDashboard = () => {
                           </div>
                           <div>
                             <p style={{ color: '#666', fontSize: '12px', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              <Clock size={14} />
-                              Date
+                              <CreditCard size={14} />
+                              Payment Status
                             </p>
                             <p style={{ fontWeight: '600' }}>
-                              {new Date(transaction.paymentDate || transaction.transactionDate).toLocaleDateString()}
+                              <span className={`badge badge-${transaction.paymentStatus?.toLowerCase() || 'secondary'}`}>
+                                {transaction.paymentStatus || 'N/A'}
+                              </span>
+                            </p>
+                          </div>
+                          <div>
+                            <p style={{ color: '#666', fontSize: '12px', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <Truck size={14} />
+                              Delivery Status
+                            </p>
+                            <p style={{ fontWeight: '600' }}>
+                              <span className={`badge badge-${transaction.deliveryStatus?.toLowerCase() || 'secondary'}`}>
+                                {transaction.deliveryStatus || 'N/A'}
+                              </span>
                             </p>
                           </div>
                         </div>
@@ -476,14 +649,14 @@ const BuyerDashboard = () => {
           )
         }
 
-        {/* Shipment Tracking & Statistics Section */}
+        {}
         <div className="dashboard-section" style={{ marginBottom: '32px' }}>
           <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
             <Truck size={24} />
             Order Tracking & Statistics
           </h2>
 
-          {/* Delivery Status Statistics */}
+          {}
           <div className="stats-grid" style={{ marginBottom: '32px', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
             <div className="stat-card" style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', color: 'white' }}>
               <div className="stat-icon" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
@@ -534,7 +707,7 @@ const BuyerDashboard = () => {
             </div>
           </div>
 
-          {/* All Transactions with Delivery Status */}
+          {}
           {paidTransactions.length > 0 && (
             <div>
               <h3 style={{ marginBottom: '16px', color: '#333' }}>All Your Orders</h3>
@@ -550,9 +723,14 @@ const BuyerDashboard = () => {
                             Transaction: {transaction.transactionCode}
                           </p>
                         </div>
-                        <span className={`badge badge-${transaction.deliveryStatus?.toLowerCase()}`}>
-                          {transaction.deliveryStatus}
-                        </span>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                          <span className={`badge badge-${transaction.paymentStatus?.toLowerCase() || 'secondary'}`}>
+                            Payment: {transaction.paymentStatus || 'N/A'}
+                          </span>
+                          <span className={`badge badge-${transaction.deliveryStatus?.toLowerCase() || 'secondary'}`}>
+                            Delivery: {transaction.deliveryStatus || 'N/A'}
+                          </span>
+                        </div>
                       </div>
                       <div className="transaction-details">
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '16px' }}>
@@ -576,15 +754,28 @@ const BuyerDashboard = () => {
                           </div>
                           <div>
                             <p style={{ color: '#666', fontSize: '12px', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              <Truck size={14} />
-                              Status
+                              <CreditCard size={14} />
+                              Payment Status
                             </p>
                             <p style={{ fontWeight: '600' }}>
-                              {transaction.deliveryStatus === 'PENDING' ? 'Pending' :
-                                transaction.deliveryStatus === 'PROCESSING' ? 'Processing' :
-                                  transaction.deliveryStatus === 'SHIPPED' ? 'Shipped' :
-                                    transaction.deliveryStatus === 'DELIVERED' ? 'Delivered' :
-                                      transaction.deliveryStatus}
+                              <span className={`badge badge-${transaction.paymentStatus?.toLowerCase() || 'secondary'}`}>
+                                {transaction.paymentStatus || 'N/A'}
+                              </span>
+                            </p>
+                          </div>
+                          <div>
+                            <p style={{ color: '#666', fontSize: '12px', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <Truck size={14} />
+                              Delivery Status
+                            </p>
+                            <p style={{ fontWeight: '600' }}>
+                              <span className={`badge badge-${transaction.deliveryStatus?.toLowerCase() || 'secondary'}`}>
+                                {transaction.deliveryStatus === 'PENDING' ? 'Pending' :
+                                  transaction.deliveryStatus === 'PROCESSING' ? 'Processing' :
+                                    transaction.deliveryStatus === 'SHIPPED' ? 'Shipped' :
+                                      transaction.deliveryStatus === 'DELIVERED' ? 'Delivered' :
+                                        transaction.deliveryStatus || 'N/A'}
+                              </span>
                             </p>
                           </div>
                           <div>
@@ -678,7 +869,7 @@ const BuyerDashboard = () => {
         </div>
       </div>
 
-      {/* Rating Modal */}
+      {}
       <RatingModal
         isOpen={ratingModalOpen}
         onClose={() => {

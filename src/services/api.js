@@ -9,7 +9,8 @@ const api = axios.create({
   },
 });
 
-// Request interceptor to add auth token
+
+
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -23,23 +24,29 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor to handle errors
+
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Handle network errors gracefully
+    
+
     if (!error.response) {
-      // Network error - backend might not be running
+      
+
       console.warn('Network error: Backend may not be running. Check http://localhost:8080');
-      // Don't redirect on network errors, just reject the promise
+      
+
       return Promise.reject(error);
     }
 
-    // Handle HTTP errors
+    
+
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      // Only redirect if not already on login page
+      
+
       if (window.location.pathname !== '/login') {
         window.location.href = '/login';
       }

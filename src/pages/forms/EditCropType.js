@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { dataService } from '../../services/dataService';
 import Sidebar from '../../components/layout/Sidebar';
+import DashboardHeader from '../../components/dashboard/DashboardHeader';
 import { Save } from 'lucide-react';
 import toast from 'react-hot-toast';
 import './Form.css';
@@ -115,9 +116,8 @@ const EditCropType = () => {
     <div className="form-page">
       <Sidebar />
       <div className="form-container">
+        <DashboardHeader title="Edit Crop Type" subtitle="Update crop type information" />
         <div className="form-card">
-          <h1>Edit Crop Type</h1>
-          <p className="form-subtitle">Update crop type information</p>
           <form onSubmit={handleSubmit} className="form">
             <div className="form-row">
               <div className="form-group">

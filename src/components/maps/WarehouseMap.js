@@ -128,19 +128,15 @@ const WarehouseMap = ({ warehouses }) => {
                   lng: parseFloat(data[0].lon)
                 };
               } else {
-                // Default to Kigali with offset if geocoding fails
                 baseCoords = { lat: -1.9441, lng: 30.0619 };
               }
             } catch (error) {
-              console.error('Geocoding error:', error);
               baseCoords = { lat: -1.9441, lng: 30.0619 };
             }
           }
 
-          // Add unique offset to prevent overlapping markers
-          // Use warehouse ID or index to create consistent but unique offsets
           const warehouseId = warehouse.id || index;
-          const offsetLat = (warehouseId % 10) * 0.005; // 0.005 degrees ≈ 550m
+          const offsetLat = (warehouseId % 10) * 0.005;
           const offsetLng = (Math.floor(warehouseId / 10) % 10) * 0.005;
 
           let finalCoords = {
@@ -148,11 +144,10 @@ const WarehouseMap = ({ warehouses }) => {
             lng: baseCoords.lng + offsetLng
           };
 
-          // Ensure coordinates are unique (avoid exact duplicates)
           const coordKey = `${finalCoords.lat.toFixed(4)},${finalCoords.lng.toFixed(4)}`;
           let attempts = 0;
           while (usedCoords.has(coordKey) && attempts < 20) {
-            // Add more offset if duplicate found
+
             finalCoords = {
               lat: baseCoords.lat + offsetLat + (attempts * 0.002),
               lng: baseCoords.lng + offsetLng + (attempts * 0.002)
@@ -178,16 +173,12 @@ const WarehouseMap = ({ warehouses }) => {
         })
       );
 
-      console.log(`Geocoded ${geocoded.length} warehouses with unique coordinates:`,
-        geocoded.map(w => `${w.warehouseName}: [${w.lat.toFixed(4)}, ${w.lng.toFixed(4)}]`));
-
       setGeocodedWarehouses(geocoded);
     };
 
     geocodeWarehouses();
   }, [warehouses]);
 
-  // Build OpenStreetMap URL with markers
   useEffect(() => {
     if (geocodedWarehouses.length === 0 || !mapContainerRef.current) return;
 
@@ -200,16 +191,17 @@ const WarehouseMap = ({ warehouses }) => {
           return;
         }
 
-        // Calculate center point (average of all coordinates)
+        
+
         const avgLat = geocodedWarehouses.reduce((sum, w) => sum + w.lat, 0) / geocodedWarehouses.length;
         const avgLng = geocodedWarehouses.reduce((sum, w) => sum + w.lng, 0) / geocodedWarehouses.length;
 
-        // Clear existing map if any
+        
+
         if (mapInstanceRef.current) {
           try {
             mapInstanceRef.current.remove();
           } catch (e) {
-            // Ignore if already removed
           }
         }
         if (mapContainerRef.current._leaflet_id) {
@@ -219,67 +211,54 @@ const WarehouseMap = ({ warehouses }) => {
               existingMap.remove();
             }
           } catch (e) {
-            // Ignore
           }
         }
         if (mapContainerRef.current) {
           mapContainerRef.current.innerHTML = '';
         }
 
-        // Create map
         mapInstance = window.L.map(mapContainerRef.current, {
           zoomControl: true,
-          attributionControl: true
+          attributionControl: true,
+          zoomControlOptions: {
+            position: 'topright' 
+
+          }
         }).setView([avgLat, avgLng], 8);
 
-        // Store map instance
         mapInstanceRef.current = mapInstance;
 
-        // Add OpenStreetMap tiles
+
         window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '© OpenStreetMap contributors',
           maxZoom: 19
         }).addTo(mapInstance);
 
-        // Smart marker management: keep existing, remove old, add new
         const currentWarehouseIds = new Set(geocodedWarehouses.map(w => w.id));
 
-        // Remove markers for warehouses that no longer exist
         markersRef.current = markersRef.current.filter(markerData => {
           if (!currentWarehouseIds.has(markerData.warehouse.id)) {
-            // Remove marker from map if warehouse no longer exists
             try {
               mapInstance.removeLayer(markerData.marker);
             } catch (e) {
-              // Ignore if already removed
             }
             return false;
           }
           return true;
         });
 
-        // Track which warehouses already have markers to avoid duplicates
         const existingWarehouseIds = new Set(markersRef.current.map(m => m.warehouse.id));
 
-        // Add markers for each warehouse - create a pin for EACH warehouse
-        console.log(`📍 Processing ${geocodedWarehouses.length} warehouses (one pin per warehouse)`);
-        console.log(`   Existing markers: ${markersRef.current.length}`);
-
-        let newMarkersCount = 0;
         geocodedWarehouses.forEach((warehouse, index) => {
-          // Skip if marker already exists for this warehouse
           if (existingWarehouseIds.has(warehouse.id)) {
-            return; // Marker already exists, skip
+            return;
           }
 
-          newMarkersCount++;
-
           try {
-            // Create unique marker at unique coordinates - ONE PIN PER WAREHOUSE
             const marker = window.L.marker([warehouse.lat, warehouse.lng], {
               title: warehouse.warehouseName,
               alt: warehouse.warehouseName,
-              warehouseId: warehouse.id // Store warehouse ID for reference
+              warehouseId: warehouse.id
             })
               .addTo(mapInstance)
               .bindPopup(`
@@ -292,7 +271,6 @@ const WarehouseMap = ({ warehouses }) => {
                 </div>
               `);
 
-            // Add custom icon with warehouse color - use different colors for variety
             try {
               const colors = ['green', 'blue', 'red', 'orange', 'yellow', 'violet', 'grey'];
               const colorIndex = index % colors.length;
@@ -307,48 +285,26 @@ const WarehouseMap = ({ warehouses }) => {
                 })
               );
             } catch (e) {
-              // Use default icon if custom fails
-              console.warn('Could not set custom icon for warehouse:', warehouse.warehouseName, e);
             }
 
-            // Store marker with warehouse reference
             markersRef.current.push({
               marker: marker,
               warehouse: warehouse
             });
-
-            console.log(`✅ NEW PIN created for "${warehouse.warehouseName}" at [${warehouse.lat.toFixed(6)}, ${warehouse.lng.toFixed(6)}]`);
           } catch (e) {
-            console.error(`❌ Error creating pin for warehouse ${warehouse.warehouseName}:`, e);
           }
         });
 
-        console.log(`🎯 Map Status: ${newMarkersCount} new pins added, ${markersRef.current.length} total pins for ${geocodedWarehouses.length} warehouses`);
 
-        // Verify all warehouses have pins
-        if (markersRef.current.length !== geocodedWarehouses.length) {
-          console.warn(`⚠️ Warning: Only ${markersRef.current.length} pins on map, expected ${geocodedWarehouses.length}`);
-          const missingWarehouses = geocodedWarehouses.filter(w =>
-            !markersRef.current.some(m => m.warehouse.id === w.id)
-          );
-          if (missingWarehouses.length > 0) {
-            console.warn('Missing pins for:', missingWarehouses.map(w => w.warehouseName));
-          }
-        } else {
-          console.log(`✅ SUCCESS: All ${geocodedWarehouses.length} warehouses have pins on the map!`);
-        }
-
-        // Fit map to show all markers
         if (markersRef.current.length > 0) {
           const group = window.L.featureGroup(markersRef.current.map(m => m.marker));
           mapInstance.fitBounds(group.getBounds().pad(0.1));
         }
       } catch (error) {
-        console.error('Error initializing map:', error);
       }
     };
 
-    // Load Leaflet CSS
+
     if (!document.getElementById('leaflet-css')) {
       const link = document.createElement('link');
       link.id = 'leaflet-css';
@@ -358,25 +314,23 @@ const WarehouseMap = ({ warehouses }) => {
       document.head.appendChild(link);
     }
 
-    // Load Leaflet JS
+    
+
     if (!window.L) {
       const script = document.createElement('script');
       script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
       script.crossOrigin = 'anonymous';
       script.onload = () => {
-        // Wait a bit for Leaflet to fully initialize
         setTimeout(initializeMap, 100);
       };
       script.onerror = (error) => {
-        console.error('Failed to load Leaflet:', error);
       };
       document.body.appendChild(script);
     } else {
-      // Leaflet already loaded
       setTimeout(initializeMap, 100);
     }
 
-    // Cleanup function
+    
     return () => {
       isMounted = false;
       if (mapInstanceRef.current) {
@@ -384,7 +338,6 @@ const WarehouseMap = ({ warehouses }) => {
           mapInstanceRef.current.remove();
           mapInstanceRef.current = null;
         } catch (e) {
-          // Ignore cleanup errors
         }
       }
       markersRef.current = [];
@@ -442,21 +395,17 @@ const WarehouseMap = ({ warehouses }) => {
                 e.stopPropagation();
                 if (mapInstanceRef.current && markersRef.current.length > 0) {
                   try {
-                    // Find the marker for this warehouse
                     const markerData = markersRef.current.find(m => m.warehouse.id === warehouse.id);
                     if (markerData && mapInstanceRef.current) {
-                      // Zoom to the marker location (not Google Maps)
                       mapInstanceRef.current.setView([warehouse.lat, warehouse.lng], 15, {
                         animate: true,
                         duration: 0.5
                       });
-                      // Open the popup for this marker
                       setTimeout(() => {
                         markerData.marker.openPopup();
                       }, 600);
                     }
                   } catch (e) {
-                    console.error('Error zooming to warehouse:', e);
                   }
                 }
               }}

@@ -9,7 +9,8 @@ export const globalSearch = async (query) => {
   const results = [];
 
   try {
-    // Search users
+    
+
     const usersResponse = await dataService.getUsers({ search: searchTerm });
     if (usersResponse.data?.content) {
       usersResponse.data.content.forEach((user) => {
@@ -24,7 +25,8 @@ export const globalSearch = async (query) => {
       });
     }
 
-    // Search warehouses
+    
+
     const warehousesResponse = await dataService.getWarehouses({ search: searchTerm });
     if (warehousesResponse.data?.content) {
       warehousesResponse.data.content.forEach((warehouse) => {
@@ -39,7 +41,8 @@ export const globalSearch = async (query) => {
       });
     }
 
-    // Search inventory
+    
+
     const inventoryResponse = await dataService.getInventories({ search: searchTerm });
     if (inventoryResponse.data?.content) {
       inventoryResponse.data.content.forEach((inventory) => {
@@ -54,7 +57,8 @@ export const globalSearch = async (query) => {
       });
     }
 
-    // Search transactions
+    
+
     const transactionsResponse = await dataService.getTransactions({ search: searchTerm });
     if (transactionsResponse.data?.content) {
       transactionsResponse.data.content.forEach((transaction) => {
@@ -69,7 +73,8 @@ export const globalSearch = async (query) => {
       });
     }
 
-    // Search crop types
+    
+
     const cropTypesResponse = await dataService.getCropTypes({ search: searchTerm });
     if (cropTypesResponse.data?.content) {
       cropTypesResponse.data.content.forEach((cropType) => {
@@ -87,7 +92,8 @@ export const globalSearch = async (query) => {
     console.error('Global search error:', error);
   }
 
-  return results.slice(0, 10); // Limit to 10 results
+  return results.slice(0, 10); 
+
 };
 
 

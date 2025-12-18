@@ -17,13 +17,15 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
 
   useEffect(() => {
-    // Check for stored auth data
+    
+
     const storedToken = localStorage.getItem('token');
     const storedUser = localStorage.getItem('user');
 
     if (storedToken && storedUser) {
       const userData = JSON.parse(storedUser);
-      // Normalize user object: ensure both id and userId are available
+      
+
       const normalizedUser = {
         ...userData,
         id: userData.userId || userData.id,
@@ -31,7 +33,8 @@ export const AuthProvider = ({ children }) => {
       };
       setToken(storedToken);
       setUser(normalizedUser);
-      // Update localStorage with normalized user
+      
+
       localStorage.setItem('user', JSON.stringify(normalizedUser));
     }
     setLoading(false);
@@ -41,15 +44,18 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await authService.login(email, password);
       
-      // Check if 2FA is required
+      
+
       if (response.requires2FA) {
         return { success: false, requires2FA: true, email: response.email };
       }
       
-      // If token exists, login is complete
+      
+
       if (response.token) {
         const { token: authToken, ...userData } = response;
-        // Normalize user object: ensure both id and userId are available
+        
+
         const normalizedUser = {
           ...userData,
           id: userData.userId || userData.id,
@@ -62,7 +68,8 @@ export const AuthProvider = ({ children }) => {
         return { success: true, requires2FA: false };
       }
       
-      // If no token and no 2FA flag, something went wrong
+      
+
       throw new Error('Unexpected login response');
     } catch (error) {
       throw error;
@@ -74,7 +81,8 @@ export const AuthProvider = ({ children }) => {
       const response = await authService.verify2FA(email, code);
       const { token: authToken, ...userData } = response;
       
-      // Normalize user object: ensure both id and userId are available
+      
+
       const normalizedUser = {
         ...userData,
         id: userData.userId || userData.id,
@@ -96,8 +104,10 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       const response = await authService.register(userData);
-      // Don't auto-login after registration - user needs to verify email first
-      // Just return success without saving token/user
+      
+
+      
+
       return { success: true, data: response };
     } catch (error) {
       throw error;
@@ -115,22 +125,26 @@ export const AuthProvider = ({ children }) => {
     const updatedUser = { 
       ...user, 
       ...userData,
-      // Ensure both id and userId are always available
+      
+
       id: userData.userId || userData.id || user?.id || user?.userId,
       userId: userData.userId || userData.id || user?.id || user?.userId,
-      // Merge userProfile if provided
+      
+
       userProfile: userData.userProfile ? {
         ...user?.userProfile,
         ...userData.userProfile
       } : user?.userProfile,
-      // If profilePictureUrl is provided directly, also set it in userProfile
+      
+
       profilePictureUrl: userData.profilePictureUrl !== undefined 
         ? userData.profilePictureUrl 
         : (userData.userProfile?.profilePictureUrl !== undefined 
           ? userData.userProfile.profilePictureUrl 
           : user?.profilePictureUrl),
     };
-    // Ensure profilePictureUrl is also in userProfile if it exists
+    
+
     if (updatedUser.profilePictureUrl !== undefined) {
       updatedUser.userProfile = {
         ...updatedUser.userProfile,
@@ -142,7 +156,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   const setAuthData = (authToken, userData) => {
-    // Normalize user object: ensure both id and userId are available
+    
+
     const normalizedUser = {
       ...userData,
       id: userData.userId || userData.id,

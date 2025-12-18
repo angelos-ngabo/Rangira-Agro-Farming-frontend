@@ -4,6 +4,7 @@ import { useQueryClient, useMutation } from 'react-query';
 import { useAuth } from '../../contexts/AuthContext';
 import { dataService } from '../../services/dataService';
 import Sidebar from '../../components/layout/Sidebar';
+import DashboardHeader from '../../components/dashboard/DashboardHeader';
 import { useQuery } from 'react-query';
 import toast from 'react-hot-toast';
 import { Package, Edit, LogOut, Upload, Send } from 'lucide-react';
@@ -15,7 +16,8 @@ const InventoryRequestForm = () => {
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
   const [inventories, setInventories] = useState([]);
-  const [requestType, setRequestType] = useState('UPDATE'); // UPDATE or WITHDRAWAL
+  const [requestType, setRequestType] = useState('UPDATE'); 
+
   const [cropImage, setCropImage] = useState(null);
   const [cropImageUrl, setCropImageUrl] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -23,44 +25,52 @@ const InventoryRequestForm = () => {
   const [formData, setFormData] = useState({
     inventoryId: '',
     requestType: 'UPDATE',
-    // UPDATE fields
+    
+
     newCropImageUrl: '',
     newPricePerKg: '',
     newNotes: '',
-    // WITHDRAWAL fields
+    
+
     withdrawalQuantityKg: '',
     withdrawalDate: '',
-    // Common
+    
+
     farmerNotes: '',
   });
 
-  // Fetch farmer's inventories - only their own stored inventories
+  
+
   const { data: inventoriesData, isLoading: inventoriesLoading } = useQuery(
     ['farmerInventories', user?.id],
     async () => {
       if (!user?.id) return [];
       try {
-        // Fetch only inventories belonging to this farmer with STORED status
+        
+
         const response = await dataService.getInventories({ 
           farmerId: user.id,
           page: 0,
-          size: 100,
-          status: 'STORED'
+          size: 1000
         });
         const data = response.data?.content || response.data || [];
-        // Double-check: filter to ensure only this farmer's inventories with remaining quantity
-        return data.filter(inv => 
-          inv.farmer?.id === user.id && 
-          inv.remainingQuantityKg > 0 && 
-          inv.status === 'STORED'
-        );
+        
+
+        
+
+        return data.filter(inv => {
+          const hasRemaining = parseFloat(inv.remainingQuantityKg || 0) > 0;
+          const isStoredOrPartiallySold = inv.status === 'STORED' || inv.status === 'PARTIALLY_SOLD';
+          const belongsToFarmer = inv.farmer?.id === user.id || inv.farmer?.id === parseInt(user.id);
+          return belongsToFarmer && hasRemaining && isStoredOrPartiallySold;
+        });
       } catch (error) {
         console.error('Error fetching inventories:', error);
         toast.error('Failed to load inventories');
         return [];
       }
     },
-    { enabled: !!user?.id && user?.userType === 'FARMER' }
+    { enabled: !!user?.id && user?.userType === 'FARMER', refetchOnWindowFocus: true }
   );
 
   useEffect(() => {
@@ -90,7 +100,8 @@ const InventoryRequestForm = () => {
     setFormData(prev => ({
       ...prev,
       requestType: newType,
-      // Reset fields when switching types
+      
+
       newCropImageUrl: '',
       newPricePerKg: '',
       newNotes: '',
@@ -116,7 +127,8 @@ const InventoryRequestForm = () => {
       formData.append('file', file);
       
       const response = await dataService.uploadWarehouseAccessImage(file);
-      // Handle different response structures
+      
+
       let imageUrl = null;
       if (typeof response.data === 'string') {
         imageUrl = response.data;
@@ -194,13 +206,15 @@ const InventoryRequestForm = () => {
         requestType: requestType,
       };
 
-      // Only include farmerNotes if it has a value
+      
+
       if (formData.farmerNotes && typeof formData.farmerNotes === 'string' && formData.farmerNotes.trim() !== '') {
         requestPayload.farmerNotes = formData.farmerNotes.trim();
       }
 
       if (requestType === 'UPDATE') {
-        // Only include fields that have values
+        
+
         if (formData.newCropImageUrl && typeof formData.newCropImageUrl === 'string' && formData.newCropImageUrl.trim() !== '') {
           requestPayload.newCropImageUrl = formData.newCropImageUrl.trim();
         }
@@ -214,7 +228,8 @@ const InventoryRequestForm = () => {
           requestPayload.newNotes = formData.newNotes.trim();
         }
       } else {
-        // WITHDRAWAL
+        
+
         if (formData.withdrawalQuantityKg && formData.withdrawalQuantityKg !== '') {
           const quantity = parseFloat(formData.withdrawalQuantityKg);
           if (!isNaN(quantity) && quantity > 0) {
@@ -236,7 +251,8 @@ const InventoryRequestForm = () => {
 
   const selectedInventory = inventories.find(inv => inv.id === parseInt(formData.inventoryId));
 
-  // Helper function to safely get image URL
+  
+
   const getImageUrl = (url) => {
     if (!url || typeof url !== 'string' || url.trim() === '') {
       return '';
@@ -253,17 +269,15 @@ const InventoryRequestForm = () => {
   return (
     <div className="form-page">
       <Sidebar />
-      <div className="form-container">
-        <div className="form-card">
-          <h1>
-            {requestType === 'UPDATE' ? <Edit size={28} style={{ marginRight: '8px', verticalAlign: 'middle' }} /> : <LogOut size={28} style={{ marginRight: '8px', verticalAlign: 'middle' }} />}
-            {requestType === 'UPDATE' ? 'Update Inventory Request' : 'Withdraw Inventory Request'}
-          </h1>
-          <p className="form-subtitle">
-            {requestType === 'UPDATE' 
-              ? 'Request to update inventory details (price, image, or notes)'
-              : 'Request to withdraw inventory from warehouse'}
-          </p>
+      <div className="form-layout-wrapper">
+        <DashboardHeader 
+          title={requestType === 'UPDATE' ? 'Update Inventory Request' : 'Withdraw Inventory Request'}
+          subtitle={requestType === 'UPDATE' 
+            ? 'Request to update inventory details (price, image, or notes)'
+            : 'Request to withdraw inventory from warehouse'}
+        />
+        <div className="form-container">
+          <div className="form-card">
           
           <form onSubmit={handleSubmit} className="form">
             <div className="form-group">
@@ -494,6 +508,7 @@ const InventoryRequestForm = () => {
               </button>
             </div>
           </form>
+          </div>
         </div>
       </div>
     </div>

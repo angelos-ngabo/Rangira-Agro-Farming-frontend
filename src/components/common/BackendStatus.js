@@ -20,14 +20,16 @@ const BackendStatus = () => {
     };
 
     checkBackend();
-    // Check every 30 seconds
+    
+
     const interval = setInterval(checkBackend, 30000);
 
     return () => clearInterval(interval);
   }, []);
 
   if (checking || isOnline) {
-    return null; // Don't show anything if online or still checking
+    return null; 
+
   }
 
   return (

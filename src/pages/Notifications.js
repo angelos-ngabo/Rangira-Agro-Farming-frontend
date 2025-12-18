@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { dataService } from '../services/dataService';
 import Sidebar from '../components/layout/Sidebar';
+import DashboardHeader from '../components/dashboard/DashboardHeader';
 import Button from '../components/common/Button';
 
 import { Bell, Check, CheckCheck, Filter, X } from 'lucide-react';
@@ -12,10 +14,13 @@ import './Dashboard.css';
 
 const Notifications = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [filter, setFilter] = useState('all'); // 'all', 'unread', 'read'
+  const [filter, setFilter] = useState('all'); 
 
-  // Fetch all notifications
+
+  
+
   const { data: notifications = [], isLoading, refetch } = useQuery(
     ['notifications', filter],
     async () => {
@@ -24,7 +29,6 @@ const Notifications = () => {
         const notifs = response.data || response || [];
         return Array.isArray(notifs) ? notifs : [];
       } catch (error) {
-        console.error('Error fetching notifications:', error);
         return [];
       }
     },
@@ -34,7 +38,8 @@ const Notifications = () => {
     }
   );
 
-  // Filter notifications
+  
+
   const filteredNotifications = React.useMemo(() => {
     if (filter === 'all') return notifications;
     if (filter === 'unread') return notifications.filter(n => !n.isRead);
@@ -155,73 +160,56 @@ const Notifications = () => {
     <div className="page">
       <Sidebar />
       <div className="page-container">
-        <div style={{ marginBottom: '24px' }}>
-          <h1 style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-            <Bell size={28} />
-            Notifications
-            {unreadCount > 0 && (
-              <span style={{
-                background: '#ef4444',
-                color: 'white',
-                borderRadius: '12px',
-                padding: '4px 12px',
-                fontSize: '14px',
-                fontWeight: '600'
-              }}>
-                {unreadCount} unread
-              </span>
-            )}
-          </h1>
+        <DashboardHeader />
 
-          {/* Filter and Actions */}
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '24px',
-            flexWrap: 'wrap',
-            gap: '12px'
-          }}>
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-              <Filter size={18} style={{ color: '#666' }} />
-              <Button
-                variant={filter === 'all' ? 'primary' : 'outline'}
-                size="small"
-                onClick={() => setFilter('all')}
-              >
-                All ({notifications.length})
-              </Button>
-              <Button
-                variant={filter === 'unread' ? 'danger' : 'outline'}
-                size="small"
-                onClick={() => setFilter('unread')}
-              >
-                Unread ({unreadCount})
-              </Button>
-              <Button
-                variant={filter === 'read' ? 'success' : 'outline'}
-                size="small"
-                onClick={() => setFilter('read')}
-              >
-                Read ({notifications.length - unreadCount})
-              </Button>
-            </div>
-
-            {unreadCount > 0 && (
-              <Button
-                variant="primary"
-                size="small"
-                onClick={handleMarkAllAsRead}
-                disabled={markAllAsReadMutation.isLoading}
-                icon={CheckCheck}
-              >
-                {markAllAsReadMutation.isLoading ? 'Marking...' : 'Mark All as Read'}
-              </Button>
-            )}
+        {}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '24px',
+          flexWrap: 'wrap',
+          gap: '12px'
+        }}>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <Filter size={18} style={{ color: '#666' }} />
+            <Button
+              variant={filter === 'all' ? 'primary' : 'outline'}
+              size="small"
+              onClick={() => setFilter('all')}
+            >
+              All ({notifications.length})
+            </Button>
+            <Button
+              variant={filter === 'unread' ? 'danger' : 'outline'}
+              size="small"
+              onClick={() => setFilter('unread')}
+            >
+              Unread ({unreadCount})
+            </Button>
+            <Button
+              variant={filter === 'read' ? 'success' : 'outline'}
+              size="small"
+              onClick={() => setFilter('read')}
+            >
+              Read ({notifications.length - unreadCount})
+            </Button>
           </div>
+
+          {unreadCount > 0 && (
+            <Button
+              variant="primary"
+              size="small"
+              onClick={handleMarkAllAsRead}
+              disabled={markAllAsReadMutation.isLoading}
+              icon={CheckCheck}
+            >
+              {markAllAsReadMutation.isLoading ? 'Marking...' : 'Mark All as Read'}
+            </Button>
+          )}
         </div>
 
-        {/* Notifications List */}
+        {}
         {filteredNotifications.length === 0 ? (
           <div style={{
             textAlign: 'center',
@@ -241,125 +229,125 @@ const Notifications = () => {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {filteredNotifications.map((notification) => (
-              <div
-                key={notification.id}
-                style={{
-                  background: notification.isRead ? '#ffffff' : '#f0f9ff',
-                  border: notification.isRead ? '1px solid #e5e7eb' : '2px solid #0ea5e9',
-                  borderRadius: '12px',
-                  padding: '20px',
-                  display: 'flex',
-                  gap: '16px',
-                  transition: 'all 0.2s',
-                  cursor: 'pointer',
-                  position: 'relative'
-                }}
-                onClick={() => {
-                  if (!notification.isRead) {
-                    handleMarkAsRead(notification.id);
-                  }
-                  if (notification.actionUrl) {
-                    window.location.href = notification.actionUrl;
-                  }
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
-              >
-                {/* Icon */}
-                <div style={{
-                  width: '48px',
-                  height: '48px',
-                  borderRadius: '50%',
-                  background: `${getNotificationColor(notification.type)}20`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '24px',
-                  flexShrink: 0
-                }}>
-                  {getNotificationIcon(notification.type)}
+            <div
+              key={notification.id}
+              style={{
+                background: notification.isRead ? '#ffffff' : '#f0f9ff',
+                border: notification.isRead ? '1px solid #e5e7eb' : '2px solid #0ea5e9',
+                borderRadius: '12px',
+                padding: '20px',
+                display: 'flex',
+                gap: '16px',
+                transition: 'all 0.2s',
+                cursor: 'pointer',
+                position: 'relative'
+              }}
+              onClick={() => {
+                if (!notification.isRead) {
+                  handleMarkAsRead(notification.id);
+                }
+                if (notification.actionUrl) {
+                  navigate(notification.actionUrl);
+                }
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
+            >
+              {}
+              <div style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '50%',
+                background: `${getNotificationColor(notification.type)}20`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '24px',
+                flexShrink: 0
+              }}>
+                {getNotificationIcon(notification.type)}
+              </div>
+
+              {}
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                  <div>
+                    <h3 style={{
+                      margin: 0,
+                      marginBottom: '4px',
+                      fontSize: '16px',
+                      fontWeight: notification.isRead ? '500' : '700',
+                      color: notification.isRead ? '#333' : '#111'
+                    }}>
+                      {notification.title}
+                    </h3>
+                    <p style={{
+                      margin: 0,
+                      color: '#666',
+                      fontSize: '14px',
+                      lineHeight: '1.5'
+                    }}>
+                      {notification.message}
+                    </p>
+                  </div>
+                  {!notification.isRead && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleMarkAsRead(notification.id);
+                      }}
+                      className="btn-icon"
+                      title="Mark as read"
+                      style={{
+                        background: 'transparent',
+                        border: '1px solid #ddd',
+                        borderRadius: '4px',
+                        padding: '6px 8px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      <Check size={16} />
+                    </button>
+                  )}
                 </div>
 
-                {/* Content */}
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                    <div>
-                      <h3 style={{
-                        margin: 0,
-                        marginBottom: '4px',
-                        fontSize: '16px',
-                        fontWeight: notification.isRead ? '500' : '700',
-                        color: notification.isRead ? '#333' : '#111'
-                      }}>
-                        {notification.title}
-                      </h3>
-                      <p style={{
-                        margin: 0,
-                        color: '#666',
-                        fontSize: '14px',
-                        lineHeight: '1.5'
-                      }}>
-                        {notification.message}
-                      </p>
-                    </div>
-                    {!notification.isRead && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleMarkAsRead(notification.id);
-                        }}
-                        className="btn-icon"
-                        title="Mark as read"
-                        style={{
-                          background: 'transparent',
-                          border: '1px solid #ddd',
-                          borderRadius: '4px',
-                          padding: '6px 8px',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}
-                      >
-                        <Check size={16} />
-                      </button>
-                    )}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
+                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                    <span style={{
+                      padding: '4px 12px',
+                      borderRadius: '12px',
+                      background: `${getNotificationColor(notification.type)}20`,
+                      color: getNotificationColor(notification.type),
+                      fontSize: '12px',
+                      fontWeight: '600'
+                    }}>
+                      {notification.type?.replace(/_/g, ' ')}
+                    </span>
+                    <span style={{ color: '#999', fontSize: '12px' }}>
+                      {formatTime(notification.createdAt || notification.created_at)}
+                    </span>
                   </div>
-
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
-                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                      <span style={{
-                        padding: '4px 12px',
-                        borderRadius: '12px',
-                        background: `${getNotificationColor(notification.type)}20`,
-                        color: getNotificationColor(notification.type),
-                        fontSize: '12px',
-                        fontWeight: '600'
-                      }}>
-                        {notification.type?.replace(/_/g, ' ')}
-                      </span>
-                      <span style={{ color: '#999', fontSize: '12px' }}>
-                        {formatTime(notification.createdAt || notification.created_at)}
-                      </span>
-                    </div>
-                    {!notification.isRead && (
-                      <span style={{
-                        width: '8px',
-                        height: '8px',
-                        borderRadius: '50%',
-                        background: '#ef4444',
-                        display: 'inline-block'
-                      }} />
-                    )}
-                  </div>
+                  {!notification.isRead && (
+                    <span style={{
+                      width: '8px',
+                      height: '8px',
+                      borderRadius: '50%',
+                      background: '#ef4444',
+                      display: 'inline-block'
+                    }} />
+                  )}
                 </div>
               </div>
+            </div>
             ))}
           </div>
         )}
@@ -369,4 +357,6 @@ const Notifications = () => {
 };
 
 export default Notifications;
+
+
 

@@ -34,7 +34,8 @@ const ChangePassword = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validation
+    
+
     if (!formData.currentPassword || !formData.newPassword || !formData.confirmPassword) {
       toast.error('Please fill in all fields');
       return;
@@ -64,7 +65,8 @@ const ChangePassword = () => {
         newPassword: '',
         confirmPassword: ''
       });
-      // Optionally navigate back to settings
+      
+
       setTimeout(() => {
         navigate('/settings');
       }, 1500);

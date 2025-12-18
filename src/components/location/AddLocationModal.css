@@ -1,0 +1,326 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.add-location-modal {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.add-location-modal-full {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 700px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.add-location-form-full {
+  padding: 24px;
+}
+
+.info-box {
+  display: flex;
+  padding: '12px 16px';
+  background: #e0f2fe;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border: 1px solid #0ea5e9;
+  align-items: flex-start;
+}
+
+.info-box strong {
+  color: #0c4a6e;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.info-box ol {
+  color: #0c4a6e;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.info-box li {
+  margin-bottom: 4px;
+}
+
+/* Dark mode for info box */
+.dark-mode .info-box {
+  background: #1e3a5f !important;
+  border-color: #3b82f6 !important;
+}
+
+.dark-mode .info-box strong,
+.dark-mode .info-box ol,
+.dark-mode .info-box li {
+  color: #bfdbfe !important;
+}
+
+.hierarchy-section {
+  margin-bottom: 24px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f9fafb;
+}
+
+.hierarchy-header {
+  padding: 12px 16px;
+  background: #116530;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background 0.2s;
+}
+
+.hierarchy-header:hover {
+  background: #2ea359;
+}
+
+.hierarchy-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hierarchy-content {
+  padding: 16px;
+  background: white;
+}
+
+.target-location-section {
+  margin-top: 24px;
+  padding: 20px;
+  background: linear-gradient(135deg, #116530 0%, #2ea359 100%);
+  border-radius: 8px;
+  color: white;
+}
+
+.target-location-section h3 {
+  margin: 0 0 16px 0;
+  font-size: 1.2rem;
+  color: white;
+}
+
+.target-location-section .form-group label {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.target-location-section .form-group input {
+  background: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.target-location-section .form-group input:focus {
+  border-color: white;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
+}
+
+.target-location-section .form-hint {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Dark mode support */
+.dark-mode .add-location-modal-full,
+.dark-mode .add-location-modal {
+  background: #2d2d2d;
+  color: #e0e0e0;
+}
+
+.dark-mode .hierarchy-section {
+  border-color: #404040;
+  background: #1a1a1a;
+}
+
+.dark-mode .hierarchy-content {
+  background: #2d2d2d;
+}
+
+.dark-mode .hierarchy-header {
+  background: #116530;
+}
+
+.dark-mode .hierarchy-header:hover {
+  background: #2ea359;
+}
+
+.dark-mode .form-group label {
+  color: #e0e0e0;
+}
+
+.dark-mode .form-group input,
+.dark-mode .form-group select {
+  background: #1a1a1a;
+  color: #e0e0e0;
+  border-color: #404040;
+}
+
+.dark-mode .form-group input:focus,
+.dark-mode .form-group select:focus {
+  border-color: #4ade80;
+  box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.2);
+}
+
+.dark-mode .form-hint {
+  color: #aaa;
+}
+
+.dark-mode .target-location-section {
+  background: linear-gradient(135deg, #116530 0%, #2ea359 100%);
+}
+
+.dark-mode .target-location-section .form-group input {
+  background: #1a1a1a;
+  color: #e0e0e0;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Instructions box dark mode */
+.dark-mode .add-location-form-full > div[style*="background: #e0f2fe"] {
+  background: #1e3a5f !important;
+  border-color: #3b82f6 !important;
+}
+
+.dark-mode .add-location-form-full > div[style*="background: #e0f2fe"] p {
+  color: #bfdbfe !important;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #116530;
+}
+
+.modal-close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  transition: color 0.2s;
+}
+
+.modal-close-btn:hover {
+  color: #111827;
+}
+
+.add-location-form {
+  padding: 24px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #116530;
+  box-shadow: 0 0 0 3px rgba(17, 101, 48, 0.1);
+}
+
+.form-group input:disabled,
+.form-group select:disabled {
+  background-color: #f3f4f6;
+  cursor: not-allowed;
+}
+
+.form-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.btn-primary {
+  background: #116530;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #2ea359;
+}
+
+.btn-primary:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #e5e7eb;
+}
+

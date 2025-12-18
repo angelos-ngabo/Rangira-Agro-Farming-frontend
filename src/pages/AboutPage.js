@@ -10,7 +10,7 @@ const AboutPage = () => {
       <Navbar />
 
       <main className="main">
-        {/* Page Title */}
+        {}
         <div
           className="page-title dark-background"
           data-aos="fade"
@@ -28,7 +28,7 @@ const AboutPage = () => {
           </div>
         </div>
 
-        {/* About 3 Section */}
+        {}
         <section id="about-3" className="about-3 section">
           <div className="container">
             <div className="row gy-4 justify-content-between align-items-center">

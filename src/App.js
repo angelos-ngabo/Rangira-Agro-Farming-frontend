@@ -9,7 +9,8 @@ import BackendStatus from './components/common/BackendStatus';
 import Footer from './components/layout/Footer';
 import DashboardFooter from './components/layout/DashboardFooter';
 
-// Pages
+
+
 import LandingPage from './pages/LandingPage';
 import AboutPage from './pages/AboutPage';
 import ServicesPage from './pages/ServicesPage';
@@ -28,6 +29,7 @@ import AdminDashboard from './pages/dashboards/AdminDashboard';
 import BuyerDashboard from './pages/dashboards/BuyerDashboard';
 import StorekeeperDashboard from './pages/dashboards/StorekeeperDashboard';
 import FarmerDashboard from './pages/dashboards/FarmerDashboard';
+import BrowseCrops from './pages/BrowseCrops';
 import Users from './pages/Users';
 import Warehouses from './pages/Warehouses';
 import Inventory from './pages/Inventory';
@@ -60,10 +62,12 @@ import ChangePassword from './pages/ChangePassword';
 function AppContent() {
   const location = useLocation();
 
-  // Check if current route is a dashboard route
+  
+
   const isDashboardRoute = location.pathname.includes('/dashboard') ||
     location.pathname.includes('/users') ||
     location.pathname.includes('/warehouses') ||
+    location.pathname.includes('/browse-crops') ||
     location.pathname.includes('/inventory') ||
     location.pathname.includes('/transactions') ||
     location.pathname.includes('/crop-types') ||
@@ -117,7 +121,7 @@ function AppContent() {
       />
       <div style={{ flex: 1 }}>
         <Routes>
-          {/* Public Routes */}
+          {}
           <Route path="/" element={<LandingPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/services" element={<ServicesPage />} />
@@ -132,7 +136,7 @@ function AppContent() {
           <Route path="/dashboard/reset-password" element={<ProtectedRoute><ResetPasswordDashboard /></ProtectedRoute>} />
           <Route path="/2fa" element={<TwoFactorAuth />} />
 
-          {/* Protected Routes - Role-based Dashboards */}
+          {}
           <Route
             path="/dashboard"
             element={
@@ -174,7 +178,7 @@ function AppContent() {
             }
           />
 
-          {/* Admin Only Routes */}
+          {}
           <Route
             path="/users"
             element={
@@ -192,13 +196,21 @@ function AppContent() {
             }
           />
 
-          {/* All Authenticated Users */}
+          {}
           <Route
             path="/warehouses"
             element={
               <ProtectedRoute>
                 <Warehouses />
               </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/browse-crops"
+            element={
+              <RoleRoute allowedRoles={['BUYER']}>
+                <BrowseCrops />
+              </RoleRoute>
             }
           />
           <Route
@@ -306,7 +318,7 @@ function AppContent() {
             }
           />
 
-          {/* Forms */}
+          {}
           <Route
             path="/warehouses/add"
             element={
@@ -374,7 +386,7 @@ function AppContent() {
           <Route
             path="/inventory/add"
             element={
-              <RoleRoute allowedRoles={['STOREKEEPER']}>
+              <RoleRoute allowedRoles={['FARMER']}>
                 <AddInventory />
               </RoleRoute>
             }
@@ -396,7 +408,7 @@ function AppContent() {
             }
           />
 
-          {/* Catch all */}
+          {}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>

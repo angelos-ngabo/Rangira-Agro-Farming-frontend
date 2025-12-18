@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { dataService } from '../../services/dataService';
 import Sidebar from '../../components/layout/Sidebar';
+import DashboardHeader from '../../components/dashboard/DashboardHeader';
 import { Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
 import './Form.css';
@@ -40,7 +41,8 @@ const AddCropType = () => {
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      // For now, we'll use a URL. In production, upload to cloud storage
+      
+
       const reader = new FileReader();
       reader.onloadend = () => {
         setFormData(prev => ({ ...prev, imageUrl: reader.result }));
@@ -64,7 +66,7 @@ const AddCropType = () => {
         pricePerKg: formData.pricePerKg ? parseFloat(formData.pricePerKg) : null,
         imageUrl: formData.imageUrl || null,
       };
-      
+
       await dataService.createCropType(cropData);
       toast.success('Crop type created successfully!');
       navigate('/crop-types');
@@ -78,11 +80,13 @@ const AddCropType = () => {
   return (
     <div className="form-page">
       <Sidebar />
-      <div className="form-container">
-        <div className="form-card">
-          <h1>Add New Crop Type</h1>
-          <p className="form-subtitle">Create a new crop type in the system</p>
-          <form onSubmit={handleSubmit} className="form">
+      <div className="form-layout-wrapper">
+        <DashboardHeader title="Add Crop Type" subtitle="Create a new crop type in the system" />
+        <div className="form-container">
+          <div className="form-card">
+            <h1>Add New Crop Type</h1>
+            <p className="form-subtitle">Create a new crop type in the system</p>
+            <form onSubmit={handleSubmit} className="form">
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="cropCode">Crop Code *</label>
@@ -205,6 +209,7 @@ const AddCropType = () => {
               </button>
             </div>
           </form>
+          </div>
         </div>
       </div>
     </div>

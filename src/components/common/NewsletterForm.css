@@ -1,0 +1,35 @@
+/* Newsletter Subscribe Button Styles */
+.newsletter-subscribe-btn {
+  background-color: var(--accent-color, #116530) !important;
+  color: var(--contrast-color, #ffffff) !important;
+  border: 2px solid var(--accent-color, #116530) !important;
+  transition: all 0.3s ease !important;
+  font-weight: 600 !important;
+}
+
+.newsletter-subscribe-btn:hover:not(:disabled) {
+  background-color: #0a3d1a !important;
+  color: var(--contrast-color, #ffffff) !important;
+  border-color: #0a3d1a !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(17, 101, 48, 0.3);
+}
+
+.newsletter-subscribe-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Dark mode support */
+.dark-mode .newsletter-subscribe-btn {
+  background-color: var(--accent-color, #116530) !important;
+  color: var(--contrast-color, #ffffff) !important;
+  border-color: var(--accent-color, #116530) !important;
+}
+
+.dark-mode .newsletter-subscribe-btn:hover:not(:disabled) {
+  background-color: #0a3d1a !important;
+  color: var(--contrast-color, #ffffff) !important;
+  border-color: #0a3d1a !important;
+}
+

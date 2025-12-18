@@ -15,7 +15,8 @@ const OtpVerification = () => {
   const location = useLocation();
   const { setAuthData } = useAuth();
 
-  // Get email from location state or query params
+  
+
   const email = location.state?.email || new URLSearchParams(location.search).get('email');
 
   React.useEffect(() => {
@@ -38,7 +39,8 @@ const OtpVerification = () => {
     try {
       const data = await authService.verifyOtp(email, otp);
 
-      // Save token and user data
+      
+
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify({
         userId: data.userId,
@@ -49,14 +51,17 @@ const OtpVerification = () => {
         profilePictureUrl: data.profilePictureUrl,
       }));
 
-      // Update auth context by setting user directly
+      
+
       const { token: authToken, ...userData } = data;
 
-      // Update auth context
+      
+
       setAuthData(authToken, userData);
 
       toast.success('Email verified successfully! Your account is now active.');
-      // Navigate to dashboard
+      
+
       navigate('/dashboard');
     } catch (error) {
       toast.error(error.response?.data?.message || 'OTP verification failed. Please try again.');
@@ -84,7 +89,7 @@ const OtpVerification = () => {
     <div className="contact-page">
       <Navbar />
       <main className="main">
-        {/* Page Title */}
+        {}
         <div
           className="page-title dark-background"
           data-aos="fade"
@@ -102,7 +107,7 @@ const OtpVerification = () => {
           </div>
         </div>
 
-        {/* Contact Section */}
+        {}
         <section id="contact" className="contact section">
           <div className="container" data-aos="fade">
             <div className="row gy-5 gx-lg-5 justify-content-center">

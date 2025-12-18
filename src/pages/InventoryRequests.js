@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useAuth } from '../contexts/AuthContext';
 import { dataService } from '../services/dataService';
 import Sidebar from '../components/layout/Sidebar';
+import DashboardHeader from '../components/dashboard/DashboardHeader';
 import DataTable from '../components/tables/DataTable';
 import Button from '../components/common/Button';
 import { Package, CheckCircle, XCircle, Clock, Eye, Pencil, LogOut, Trash2, Filter, Leaf, Send, X } from 'lucide-react';
@@ -197,16 +198,6 @@ const InventoryRequests = () => {
             onClick={() => handleViewDetails(row)}
             className="btn-icon"
             title="View Details"
-            style={{
-              background: 'transparent',
-              border: '1px solid #ddd',
-              borderRadius: '4px',
-              padding: '6px 8px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
           >
             <Eye size={16} />
           </button>
@@ -229,17 +220,6 @@ const InventoryRequests = () => {
               }}
               className="btn-icon btn-danger"
               title="Delete Request"
-              style={{
-                background: 'transparent',
-                border: '1px solid #ef4444',
-                borderRadius: '4px',
-                padding: '6px 8px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#ef4444'
-              }}
             >
               <Trash2 size={16} />
             </button>
@@ -258,6 +238,7 @@ const InventoryRequests = () => {
     <div className="page-container">
       <Sidebar />
       <div className="page-content">
+        <DashboardHeader />
         <div className="page-body">
           <div style={{ marginBottom: '24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>

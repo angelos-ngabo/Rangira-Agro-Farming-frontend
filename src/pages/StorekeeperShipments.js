@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useAuth } from '../contexts/AuthContext';
 import { dataService } from '../services/dataService';
 import Sidebar from '../components/layout/Sidebar';
-
+import DashboardHeader from '../components/dashboard/DashboardHeader';
 import Button from '../components/common/Button';
 import { Package, Truck, CheckCircle, Clock, MapPin, User, DollarSign, X, PackageCheck, CheckCircle2, XCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -16,32 +16,59 @@ const StorekeeperShipments = () => {
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [newStatus, setNewStatus] = useState('');
 
-  // Fetch paid transactions awaiting delivery
-  const { data: transactions, isLoading, refetch } = useQuery(
-    ['shipmentTransactions', user?.id],
+  
+
+  const { data: assignedWarehouse } = useQuery(
+    ['storekeeperWarehouse', user?.id],
     async () => {
-      if (!user?.id) return [];
+      if (!user?.id) return null;
       try {
-        // Get all paid transactions using the payment status endpoint
+        const response = await dataService.getWarehouses({ storekeeperId: user.id });
+        const warehouses = response.data?.content || response.data || [];
+        return warehouses.length > 0 ? warehouses[0] : null;
+      } catch (error) {
+        console.error('Error fetching assigned warehouse:', error);
+        return null;
+      }
+    },
+    { enabled: !!user?.id }
+  );
+
+  
+
+  const { data: transactions, isLoading, refetch } = useQuery(
+    ['shipmentTransactions', user?.id, assignedWarehouse?.id],
+    async () => {
+      if (!user?.id || !assignedWarehouse?.id) return [];
+      try {
+        
+
         const response = await dataService.getTransactionsByPaymentStatus('PAID');
 
-        // Handle response - should be a list
+        
+
         let allPaid = [];
         if (Array.isArray(response.data)) {
-          // List response
           allPaid = response.data;
         } else if (Array.isArray(response)) {
-          // Direct array response
           allPaid = response;
         } else if (response.data?.content) {
-          // Paginated response (fallback)
           allPaid = response.data.content;
         }
 
-        // Filter for transactions that need shipment (PENDING, PROCESSING, SHIPPED, or DELIVERED for viewing)
-        // Storekeeper should see transactions for their assigned warehouses
-        // Include DELIVERED so storekeepers can see when buyers have confirmed delivery
-        return allPaid.filter(t =>
+        
+
+        const filtered = allPaid.filter(t => {
+          
+
+          if (!t.inventory || !t.inventory.warehouse) return false;
+          const transactionWarehouseId = t.inventory.warehouse.id || t.inventory.warehouseId;
+          return transactionWarehouseId === assignedWarehouse.id;
+        });
+
+        
+
+        return filtered.filter(t =>
           t.deliveryStatus === 'PENDING' ||
           t.deliveryStatus === 'PROCESSING' ||
           t.deliveryStatus === 'SHIPPED' ||
@@ -53,12 +80,14 @@ const StorekeeperShipments = () => {
       }
     },
     {
-      enabled: !!user?.id,
-      refetchInterval: 30000 // Refresh every 30 seconds
+      enabled: !!user?.id && !!assignedWarehouse?.id,
+      refetchInterval: 30000 
+
     }
   );
 
-  // Update delivery status mutation
+  
+
   const updateStatusMutation = useMutation(
     ({ transactionId, status }) => dataService.updateDeliveryStatus(transactionId, status),
     {
@@ -121,10 +150,12 @@ const StorekeeperShipments = () => {
           { value: 'CANCELLED', label: 'Cancel' }
         ];
       case 'SHIPPED':
-        // Storekeepers cannot mark as DELIVERED - only buyers can confirm delivery
+        
+
         return [];
       case 'DELIVERED':
-        // DELIVERED is final - no further actions
+        
+
         return [];
       default:
         return [];
@@ -152,7 +183,8 @@ const StorekeeperShipments = () => {
     <div className="dashboard">
       <Sidebar />
       <div className="dashboard-container">
-        {/* Statistics */}
+        <DashboardHeader title="Shipments" subtitle="Manage delivery status and track shipments" />
+        {}
         <div className="stats-grid" style={{ marginBottom: '32px' }}>
           <div className="stat-card">
             <div className="stat-icon" style={{ backgroundColor: '#f59e0b20' }}>
@@ -195,7 +227,7 @@ const StorekeeperShipments = () => {
           </div>
         </div>
 
-        {/* Pending Shipments */}
+        {}
         {pendingShipments.length > 0 && (
           <div className="dashboard-section" style={{ marginBottom: '32px' }}>
             <h2>Pending Pickup ({pendingShipments.length})</h2>
@@ -290,7 +322,7 @@ const StorekeeperShipments = () => {
           </div>
         )}
 
-        {/* Processing Shipments */}
+        {}
         {processingShipments.length > 0 && (
           <div className="dashboard-section" style={{ marginBottom: '32px' }}>
             <h2>Processing ({processingShipments.length})</h2>
@@ -359,7 +391,7 @@ const StorekeeperShipments = () => {
           </div>
         )}
 
-        {/* Shipped Shipments */}
+        {}
         {shippedShipments.length > 0 && (
           <div className="dashboard-section" style={{ marginBottom: '32px' }}>
             <h2>Shipped ({shippedShipments.length})</h2>
@@ -413,7 +445,7 @@ const StorekeeperShipments = () => {
           </div>
         )}
 
-        {/* Delivered Shipments (Read-only) */}
+        {}
         {deliveredShipments.length > 0 && (
           <div className="dashboard-section">
             <h2>Delivered ({deliveredShipments.length})</h2>
@@ -484,7 +516,7 @@ const StorekeeperShipments = () => {
           </div>
         )}
 
-        {/* Status Update Confirmation Modal */}
+        {}
         {showStatusModal && selectedTransaction && (
           <div className="modal-overlay" onClick={() => setShowStatusModal(false)}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>

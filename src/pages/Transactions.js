@@ -3,6 +3,7 @@ import { useQuery } from 'react-query';
 import { useAuth } from '../contexts/AuthContext';
 import { dataService } from '../services/dataService';
 import Sidebar from '../components/layout/Sidebar';
+import DashboardHeader from '../components/dashboard/DashboardHeader';
 import Button from '../components/common/Button';
 import DataTable from '../components/tables/DataTable';
 import { FileDown, CreditCard } from 'lucide-react';
@@ -14,16 +15,20 @@ const Transactions = () => {
   const [page, setPage] = useState(0);
   const [size] = useState(10);
 
-  // If user is a farmer, fetch only their transactions (as seller)
-  // Otherwise, fetch all transactions (for admin)
+  
+
+  
+
   const { data, isLoading, error } = useQuery(
     ['transactions', page, size, user?.id, user?.userType],
     () => {
       if (user?.userType === 'FARMER' && user?.id) {
-        // Fetch only farmer's transactions as seller using secure endpoint
+        
+
         return dataService.getMyTransactions();
       } else {
-        // Admin or other users see all transactions
+        
+
         return dataService.getTransactions({ page, size, sort: 'transactionDate,desc' });
       }
     },
@@ -68,6 +73,7 @@ const Transactions = () => {
     {
       header: 'Payment Status',
       accessor: 'paymentStatus',
+      sortable: true,
       render: (row) => (
         <span className={`badge badge-${row.paymentStatus?.toLowerCase() || 'secondary'}`}>
           {row.paymentStatus || 'N/A'}
@@ -77,6 +83,7 @@ const Transactions = () => {
     {
       header: 'Delivery Status',
       accessor: 'deliveryStatus',
+      sortable: true,
       render: (row) => (
         <span className={`badge badge-${row.deliveryStatus?.toLowerCase() || 'secondary'}`}>
           {row.deliveryStatus || 'N/A'}
@@ -90,7 +97,8 @@ const Transactions = () => {
     },
   ];
 
-  // Add actions column for admin
+  
+
   if (user?.userType === 'ADMIN') {
     columns.push({
       header: 'Actions',
@@ -113,11 +121,13 @@ const Transactions = () => {
     try {
       const response = await dataService.downloadReceiptAdmin(transactionId);
 
-      // Create blob and download
+      
+
       const blob = new Blob([response.data], { type: 'text/html' });
       const url = window.URL.createObjectURL(blob);
 
-      // Download the file
+      
+
       const link = document.createElement('a');
       link.href = url;
       link.download = `receipt_${transactionId}.html`;
@@ -125,16 +135,19 @@ const Transactions = () => {
       link.click();
       document.body.removeChild(link);
 
-      // Also open in new window for printing
+      
+
       const printWindow = window.open();
       if (printWindow) {
-        // Read blob as text
+        
+
         const reader = new FileReader();
         reader.onload = () => {
           printWindow.document.write(reader.result);
           printWindow.document.close();
           printWindow.focus();
-          // Auto-print after a short delay
+          
+
           setTimeout(() => {
             printWindow.print();
           }, 500);
@@ -165,6 +178,7 @@ const Transactions = () => {
     <div className="page">
       <Sidebar />
       <div className="page-container">
+        <DashboardHeader />
         <DataTable
           data={user?.userType === 'FARMER'
             ? (Array.isArray(data?.data) ? data.data : [])

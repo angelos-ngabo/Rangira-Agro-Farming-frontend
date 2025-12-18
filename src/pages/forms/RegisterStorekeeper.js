@@ -5,6 +5,7 @@ import { dataService } from '../../services/dataService';
 import { UserPlus } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Sidebar from '../../components/layout/Sidebar';
+import DashboardHeader from '../../components/dashboard/DashboardHeader';
 import './Form.css';
 
 const RegisterStorekeeper = () => {
@@ -14,9 +15,13 @@ const RegisterStorekeeper = () => {
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
   const [sectors, setSectors] = useState([]);
+  const [cells, setCells] = useState([]);
+  const [villages, setVillages] = useState([]);
   const [selectedProvince, setSelectedProvince] = useState('');
   const [selectedDistrict, setSelectedDistrict] = useState('');
   const [selectedSector, setSelectedSector] = useState('');
+  const [selectedCell, setSelectedCell] = useState('');
+  const [selectedVillage, setSelectedVillage] = useState('');
 
   const [warehouses, setWarehouses] = useState([]);
   const [formData, setFormData] = useState({
@@ -28,8 +33,10 @@ const RegisterStorekeeper = () => {
     password: '',
     confirmPassword: '',
     locationId: '',
-    userType: 'FARMER', // Default to FARMER, can select STOREKEEPER
-    warehouseId: '', // For storekeepers
+    userType: 'FARMER', 
+
+    warehouseId: '', 
+
   });
 
   useEffect(() => {
@@ -53,39 +60,138 @@ const RegisterStorekeeper = () => {
   const fetchProvinces = async () => {
     try {
       const response = await dataService.getProvinces();
-      setProvinces(response.data || []);
+      setProvinces(response.data.map(p => ({ id: p.id, name: p.name, code: p.code })));
     } catch (error) {
       console.error('Error fetching provinces:', error);
+      toast.error('Failed to load provinces');
     }
   };
 
   useEffect(() => {
     if (selectedProvince) {
-      dataService.getChildLocations(selectedProvince)
-        .then((response) => {
-          setDistricts(response.data || []);
-          setSelectedDistrict('');
-          setSelectedSector('');
-          setSectors([]);
-        })
-        .catch((error) => {
+      const fetchDistricts = async () => {
+        try {
+          const response = await dataService.getChildLocations(selectedProvince);
+          setDistricts(response.data.map(d => ({ id: d.id, name: d.name, code: d.code })));
+        } catch (error) {
           console.error('Error fetching districts:', error);
-        });
+          toast.error('Failed to load districts');
+          setDistricts([]);
+        }
+      };
+      fetchDistricts();
+      setSelectedDistrict('');
+      setSelectedSector('');
+      setSectors([]);
+      setSelectedCell('');
+      setSelectedVillage('');
+      setCells([]);
+      setVillages([]);
+      setFormData(prev => ({ ...prev, locationId: '' }));
+    } else {
+      setDistricts([]);
+      setSelectedDistrict('');
+      setSelectedSector('');
+      setSectors([]);
+      setSelectedCell('');
+      setSelectedVillage('');
+      setCells([]);
+      setVillages([]);
     }
   }, [selectedProvince]);
 
   useEffect(() => {
     if (selectedDistrict) {
-      dataService.getChildLocations(selectedDistrict)
-        .then((response) => {
-          setSectors(response.data || []);
-          setSelectedSector('');
-        })
-        .catch((error) => {
+      const fetchSectors = async () => {
+        try {
+          const response = await dataService.getChildLocations(selectedDistrict);
+          setSectors(response.data.map(s => ({ id: s.id, name: s.name, code: s.code })));
+        } catch (error) {
           console.error('Error fetching sectors:', error);
-        });
+          toast.error('Failed to load sectors');
+          setSectors([]);
+        }
+      };
+      fetchSectors();
+      setSelectedSector('');
+      setSelectedCell('');
+      setSelectedVillage('');
+      setCells([]);
+      setVillages([]);
+      setFormData(prev => ({ ...prev, locationId: '' }));
+    } else {
+      setSectors([]);
+      setSelectedSector('');
+      setSelectedCell('');
+      setSelectedVillage('');
+      setCells([]);
+      setVillages([]);
     }
   }, [selectedDistrict]);
+
+  useEffect(() => {
+    if (selectedSector) {
+      const fetchCells = async () => {
+        try {
+          const response = await dataService.getChildLocations(selectedSector);
+          if (response.data && Array.isArray(response.data)) {
+            const cellsList = response.data.map(c => ({ id: c.id, name: c.name, code: c.code }));
+            setCells(cellsList);
+            if (cellsList.length === 0) {
+              console.warn('No cells found for sector:', selectedSector);
+            }
+          } else {
+            console.warn('Invalid response format for cells:', response);
+            setCells([]);
+          }
+        } catch (error) {
+          console.error('Error fetching cells:', error);
+          toast.error('Failed to load cells');
+          setCells([]);
+        }
+      };
+      fetchCells();
+      setSelectedCell('');
+      setSelectedVillage('');
+      setVillages([]);
+      setFormData(prev => ({ ...prev, locationId: '' }));
+    } else {
+      setCells([]);
+      setSelectedCell('');
+      setSelectedVillage('');
+      setVillages([]);
+    }
+  }, [selectedSector]);
+
+  useEffect(() => {
+    if (selectedCell) {
+      const fetchVillages = async () => {
+        try {
+          const response = await dataService.getChildLocations(selectedCell);
+          if (response.data && Array.isArray(response.data)) {
+            const villagesList = response.data.map(v => ({ id: v.id, name: v.name, code: v.code }));
+            setVillages(villagesList);
+            if (villagesList.length === 0) {
+              console.warn('No villages found for cell:', selectedCell);
+            }
+          } else {
+            console.warn('Invalid response format for villages:', response);
+            setVillages([]);
+          }
+        } catch (error) {
+          console.error('Error fetching villages:', error);
+          toast.error('Failed to load villages');
+          setVillages([]);
+        }
+      };
+      fetchVillages();
+      setSelectedVillage('');
+      setFormData(prev => ({ ...prev, locationId: '' }));
+    } else {
+      setVillages([]);
+      setSelectedVillage('');
+    }
+  }, [selectedCell]);
 
   const handleChange = (e) => {
     setFormData({
@@ -97,7 +203,22 @@ const RegisterStorekeeper = () => {
   const handleSectorChange = (e) => {
     const sectorId = e.target.value;
     setSelectedSector(sectorId);
-    setFormData(prev => ({ ...prev, locationId: sectorId }));
+    setSelectedCell('');
+    setSelectedVillage('');
+    setFormData(prev => ({ ...prev, locationId: '' }));
+  };
+
+  const handleCellChange = (e) => {
+    const cellId = e.target.value;
+    setSelectedCell(cellId);
+    setSelectedVillage('');
+    setFormData(prev => ({ ...prev, locationId: '' }));
+  };
+
+  const handleVillageChange = (e) => {
+    const villageId = e.target.value;
+    setSelectedVillage(villageId);
+    setFormData(prev => ({ ...prev, locationId: villageId }));
   };
 
   const handleSubmit = async (e) => {
@@ -113,8 +234,8 @@ const RegisterStorekeeper = () => {
       return;
     }
 
-    if (!formData.locationId) {
-      toast.error('Please select a complete location (Province → District → Sector)');
+    if (!selectedProvince || !selectedDistrict || !selectedSector || !selectedCell || !selectedVillage) {
+      toast.error('Please select a complete location (Province → District → Sector → Cell → Village)');
       return;
     }
 
@@ -129,21 +250,37 @@ const RegisterStorekeeper = () => {
       const userData = {
         ...registerData,
         userType: formData.userType,
+        locationId: selectedVillage,
       };
       
       const createdUser = await dataService.createUserByAdmin(userData);
       
-      // If storekeeper, assign to warehouse
+      
+
       if (formData.userType === 'STOREKEEPER' && warehouseId) {
         try {
-          await dataService.createWarehouseAccess({
-            userId: createdUser.data.id,
-            warehouseId: parseInt(warehouseId),
-            accessLevel: 'MANAGER',
-            grantedDate: new Date().toISOString().split('T')[0],
-            isActive: true,
-            status: 'ACTIVE',
-          });
+          
+
+          const checkResponse = await dataService.checkStorekeeperAssignment(createdUser.data.id, parseInt(warehouseId));
+          const checkData = checkResponse.data;
+          
+          if (checkData.requiresConfirmation) {
+            
+
+            const confirmed = window.confirm(
+              `⚠️ ${checkData.message}\n\n` +
+              `Existing Warehouse: ${checkData.existingWarehouseName}\n` +
+              `New Warehouse: ${warehouseId}\n\n` +
+              `Do you want to proceed with the replacement?`
+            );
+            
+            if (!confirmed) {
+              toast.info('Warehouse assignment cancelled. User created without warehouse assignment.');
+              return;
+            }
+          }
+          
+          await dataService.assignStorekeeperToWarehouse(createdUser.data.id, parseInt(warehouseId));
         } catch (accessError) {
           console.error('Error assigning warehouse:', accessError);
           toast.error('User created but warehouse assignment failed. Please assign manually.');
@@ -162,12 +299,10 @@ const RegisterStorekeeper = () => {
   return (
     <div className="form-page">
       <Sidebar />
-      <div className="form-container">
-        <div className="form-card">
-          <h1>Register User</h1>
-          <p className="form-subtitle">Create a new farmer or storekeeper account</p>
-          <h1>Add User (Farmer/Storekeeper)</h1>
-          <p className="form-subtitle">Create a new farmer or storekeeper account</p>
+      <div className="form-layout-wrapper">
+        <DashboardHeader title="Register User" subtitle="Create a new farmer or storekeeper account" />
+        <div className="form-container">
+          <div className="form-card">
           
           <form onSubmit={handleSubmit} className="form">
             <div className="form-row">
@@ -333,6 +468,42 @@ const RegisterStorekeeper = () => {
                     ))}
                   </select>
                 </div>
+
+                <div className="form-group">
+                  <label htmlFor="cell">Cell *</label>
+                  <select
+                    id="cell"
+                    value={selectedCell}
+                    onChange={handleCellChange}
+                    required
+                    disabled={!selectedSector}
+                  >
+                    <option value="">Select Cell</option>
+                    {cells.map((cell) => (
+                      <option key={cell.id} value={cell.id}>
+                        {cell.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="village">Village *</label>
+                  <select
+                    id="village"
+                    value={selectedVillage}
+                    onChange={handleVillageChange}
+                    required
+                    disabled={!selectedCell}
+                  >
+                    <option value="">Select Village</option>
+                    {villages.map((village) => (
+                      <option key={village.id} value={village.id}>
+                        {village.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -374,6 +545,7 @@ const RegisterStorekeeper = () => {
               </button>
             </div>
           </form>
+          </div>
         </div>
       </div>
     </div>

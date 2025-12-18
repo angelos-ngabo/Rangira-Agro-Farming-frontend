@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
 import { getImage } from '../utils/imageUtils';
+import NewsletterForm from '../components/common/NewsletterForm';
 import './BlogPage.css';
 
 const BlogPage = () => {
@@ -10,7 +11,7 @@ const BlogPage = () => {
             <Navbar />
 
             <main className="main">
-                {/* Page Title */}
+                {}
                 <div
                     className="page-title dark-background"
                     data-aos="fade"
@@ -30,7 +31,7 @@ const BlogPage = () => {
                     </div>
                 </div>
 
-                {/* Blog Posts 2 Section */}
+                {}
                 <section id="blog-posts-2" className="blog-posts-2 section">
                     <div className="container">
                         <div className="row gy-4">
@@ -171,7 +172,7 @@ const BlogPage = () => {
                     </div>
                 </section>
 
-                {/* Blog Pagination Section */}
+                {}
                 <section id="blog-pagination" className="blog-pagination section">
                     <div className="container">
                         <div className="d-flex justify-content-center">
@@ -189,7 +190,7 @@ const BlogPage = () => {
                     </div>
                 </section>
 
-                {/* Call To Action Section */}
+                {}
                 <section id="call-to-action" className="call-to-action section light-background">
                     <div className="content">
                         <div className="container">
@@ -201,17 +202,7 @@ const BlogPage = () => {
                                     </p>
                                 </div>
                                 <div className="col-lg-6">
-                                    <form action="" className="form-subscribe php-email-form">
-                                        <div className="form-group d-flex align-items-stretch">
-                                            <input type="email" name="email" className="form-control h-100" placeholder="Enter your e-mail" />
-                                            <input type="submit" className="btn btn-secondary px-4" value="Subscribe" />
-                                        </div>
-                                        <div className="loading">Loading</div>
-                                        <div className="error-message"></div>
-                                        <div className="sent-message">
-                                            Your subscription request has been sent. Thank you!
-                                        </div>
-                                    </form>
+                                    <NewsletterForm />
                                 </div>
                             </div>
                         </div>

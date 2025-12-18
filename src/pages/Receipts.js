@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { dataService } from '../services/dataService';
 import Sidebar from '../components/layout/Sidebar';
 
+import DashboardHeader from '../components/dashboard/DashboardHeader';
 import Button from '../components/common/Button';
 import { FileText, FileDown, Calendar, CreditCard, Package, Eye, DollarSign } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -32,7 +33,8 @@ const Receipts = () => {
     try {
       const response = await dataService.downloadReceipt(transactionId);
 
-      // Create blob and download
+      
+
       const blob = new Blob([response.data], { type: 'text/html' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -54,7 +56,8 @@ const Receipts = () => {
     try {
       const response = await dataService.downloadReceipt(transactionId);
 
-      // Get HTML from response
+      
+
       const reader = new FileReader();
       reader.onload = () => {
         const html = reader.result;
@@ -97,7 +100,7 @@ const Receipts = () => {
     <div className="dashboard">
       <Sidebar />
       <div className="dashboard-container">
-
+        <DashboardHeader />
         {receipts && receipts.length > 0 ? (
           <div className="receipts-list">
             {receipts.map((receipt) => (

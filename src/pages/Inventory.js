@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { dataService } from '../services/dataService';
 import Sidebar from '../components/layout/Sidebar';
-
+import DashboardHeader from '../components/dashboard/DashboardHeader';
 import DataTable from '../components/tables/DataTable';
 import Button from '../components/common/Button';
 import { Plus, FileDown, Search, MessageSquare, X, CreditCard, Leaf, Filter } from 'lucide-react';
@@ -26,28 +26,41 @@ const Inventory = () => {
   const [proposedQuantity, setProposedQuantity] = useState('');
   const [enquiryMessage, setEnquiryMessage] = useState('');
 
-  // For buyers: fetch available inventory items for purchase
   const { data: availableItems, isLoading: itemsLoading } = useQuery(
     'availableItems',
     async () => {
       try {
-        const response = await dataService.getInventories({
-          page: 0,
-          size: 100,
-          status: 'STORED'
-        });
+        
 
-        if (response.data?.content) {
-          return response.data.content;
-        } else if (Array.isArray(response.data)) {
-          return response.data.filter(item => item.status === 'STORED' && item.remainingQuantityKg > 0);
-        } else if (Array.isArray(response)) {
-          return response.filter(item => item.status === 'STORED' && item.remainingQuantityKg > 0);
-        }
-        return [];
+        
+
+        const response = await dataService.getAvailableInventories();
+        const allInventory = response.data || [];
+        
+
+        return allInventory.filter(item => 
+          item.remainingQuantityKg > 0 && 
+          (item.status === 'STORED' || item.status === 'PARTIALLY_SOLD')
+        );
       } catch (error) {
-        console.error('Error fetching available items:', error);
-        return [];
+        console.error('Error fetching available inventory:', error);
+        
+
+        try {
+          const fallback = await dataService.getInventories({
+            page: 0,
+            size: 100,
+            status: 'STORED'
+          });
+          if (fallback.data?.content) {
+            return fallback.data.content.filter(item => item.remainingQuantityKg > 0);
+          } else if (Array.isArray(fallback.data)) {
+            return fallback.data.filter(item => item.status === 'STORED' && item.remainingQuantityKg > 0);
+          }
+          return [];
+        } catch (fallbackError) {
+          return [];
+        }
       }
     },
     {
@@ -57,7 +70,6 @@ const Inventory = () => {
     }
   );
 
-  // Fetch buyer's enquiries
   const { data: myEnquiries } = useQuery(
     ['buyerEnquiries', user?.id],
     async () => {
@@ -66,7 +78,6 @@ const Inventory = () => {
         const response = await dataService.getBuyerEnquiries();
         return response.data || [];
       } catch (error) {
-        console.error('Error fetching enquiries:', error);
         return [];
       }
     },
@@ -142,9 +153,12 @@ const Inventory = () => {
     });
   };
 
-  // For farmers: fetch only their own inventories
-  // For storekeepers: fetch inventories from their assigned warehouses
-  // For admins: fetch all inventories
+  
+
+  
+
+  
+
   const { data: assignedWarehouses } = useQuery(
     ['assignedWarehouses', user?.id],
     async () => {
@@ -152,50 +166,59 @@ const Inventory = () => {
       try {
         const response = await dataService.getWarehouseAccesses({ userId: user.id, isActive: true });
 
-        // Handle both paginated and list responses
+        
+
         let accessList = [];
         if (response.data?.content) {
-          // Paginated response
+          
+
           accessList = response.data.content;
         } else if (Array.isArray(response.data)) {
-          // List response
+          
+
           accessList = response.data;
         } else if (Array.isArray(response)) {
-          // Direct array response
+          
+
           accessList = response;
         }
 
         const warehouseIds = accessList.map(access => access.warehouse?.id).filter(Boolean) || [];
         return warehouseIds;
       } catch (error) {
-        console.error('Error fetching assigned warehouses:', error);
         return [];
       }
     },
     { enabled: user?.userType === 'STOREKEEPER' && !!user?.id }
   );
 
-  // For non-buyers: fetch inventories based on user type
+  
+
   const { data: allInventoriesData } = useQuery(
     ['inventories-all-for-search', user?.id, user?.userType, assignedWarehouses],
     () => {
-      // Farmers: fetch only their own inventories
+      
+
       if (user?.userType === 'FARMER') {
         return dataService.getInventories({ farmerId: user.id, page: 0, size: 10000 });
       }
-      // Storekeepers: fetch inventories from their assigned warehouses
+      
+
       if (user?.userType === 'STOREKEEPER') {
-        // If no assigned warehouses, return empty array
+        
+
         if (!assignedWarehouses || assignedWarehouses.length === 0) {
           return Promise.resolve({ data: [] });
         }
-        // Fetch inventories from all assigned warehouses
+        
+
         return Promise.all(
           assignedWarehouses.map(warehouseId =>
             dataService.getInventories({ warehouseId, page: 0, size: 10000 })
           )
         ).then(responses => {
-          // Combine all inventories from all warehouses
+          
+
           const allInventories = [];
           responses.forEach(response => {
             if (response.data?.content) {
@@ -207,7 +230,8 @@ const Inventory = () => {
           return { data: allInventories };
         });
       }
-      // Admins: fetch all inventories
+      
+
       return dataService.getInventories({ page: 0, size: 10000, sort: 'storageDate,desc' });
     },
     {
@@ -219,20 +243,25 @@ const Inventory = () => {
   const { data, isLoading, error } = useQuery(
     ['inventories', page, size, user?.id, user?.userType, assignedWarehouses],
     () => {
-      // Farmers: fetch only their own inventories
+      
+
       if (user?.userType === 'FARMER') {
         return dataService.getInventories({ farmerId: user.id, page, size, sort: 'storageDate,desc' });
       }
-      // Storekeepers: fetch inventories from their first assigned warehouse (or all if multiple)
+      
+
       if (user?.userType === 'STOREKEEPER') {
-        // If no assigned warehouses, return empty page
+        
+
         if (!assignedWarehouses || assignedWarehouses.length === 0) {
           return Promise.resolve({ data: { content: [], totalElements: 0 } });
         }
-        // Use the first warehouse for pagination, or fetch all warehouses and combine
+        
+
         return dataService.getInventories({ warehouseId: assignedWarehouses[0], page, size, sort: 'storageDate,desc' });
       }
-      // Admins: fetch all inventories
+      
+
       return dataService.getInventories({ page, size, sort: 'storageDate,desc' });
     },
     {
@@ -243,17 +272,21 @@ const Inventory = () => {
     }
   );
 
-  // Combine inventories for table - for storekeepers, we might need to combine from multiple warehouses
+  
+
   let inventoriesForTable = [];
   if (user?.userType === 'STOREKEEPER' && assignedWarehouses && assignedWarehouses.length > 0) {
-    // For storekeepers, use allInventoriesData which combines all warehouses
-    // Handle both paginated (with content) and list (direct array) responses
+    
+
+    
+
     inventoriesForTable =
       allInventoriesData?.data?.content ||
       (Array.isArray(allInventoriesData?.data) ? allInventoriesData.data : []) ||
       [];
   } else {
-    // Handle both paginated (with content) and list (direct array) responses
+    
+
     inventoriesForTable =
       allInventoriesData?.data?.content ||
       (Array.isArray(allInventoriesData?.data) ? allInventoriesData.data : []) ||
@@ -272,17 +305,38 @@ const Inventory = () => {
     {
       header: 'Image',
       accessor: 'cropImageUrl',
-      render: (row) => row.cropImageUrl ? (
-        <img
-          src={row.cropImageUrl.startsWith('http') ? row.cropImageUrl : `http://localhost:8080${row.cropImageUrl}`}
-          alt={row.cropType?.cropName || 'Crop'}
-          style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '4px' }}
-        />
-      ) : (
-        <div style={{ width: '50px', height: '50px', background: '#f0f0f0', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999', fontSize: '12px' }}>
-          No Image
-        </div>
-      ),
+      render: (row) => {
+        
+
+        const imageUrl = row.cropImageUrl || row.cropType?.imageUrl;
+        if (imageUrl) {
+          const imageSrc = imageUrl.startsWith('http') 
+            ? imageUrl 
+            : imageUrl.startsWith('/api/')
+              ? `http://localhost:8080${imageUrl}`
+              : imageUrl.startsWith('/')
+                ? `http://localhost:8080/api/files/crop-types/${imageUrl}`
+                : `http://localhost:8080/api/files/crop-types/${imageUrl}`;
+          return (
+            <img
+              src={imageSrc}
+              alt={row.cropType?.cropName || 'Crop'}
+              style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '4px' }}
+              onError={(e) => {
+                e.target.style.display = 'none';
+                if (e.target.nextElementSibling) {
+                  e.target.nextElementSibling.style.display = 'flex';
+                }
+              }}
+            />
+          );
+        }
+        return (
+          <div style={{ width: '50px', height: '50px', background: '#f0f0f0', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999', fontSize: '12px' }}>
+            No Image
+          </div>
+        );
+      },
     },
     {
       header: 'Code',
@@ -319,13 +373,15 @@ const Inventory = () => {
     },
   ];
 
-  // Buyer view: Card-based browsing with enquiries
+  
+
   if (user?.userType === 'BUYER') {
     return (
       <div className="dashboard">
         <Sidebar />
 
         <div className="dashboard-container">
+          <DashboardHeader />
           <div className="search-section">
             <div className="search-box">
               <Search size={20} />
@@ -395,7 +451,7 @@ const Inventory = () => {
                       )}
                     </div>
 
-                    {/* Check if buyer has pending enquiry for this item */}
+                    {}
                     {myEnquiries?.some(e => e.inventory?.id === item.id && e.status === 'PENDING') ? (
                       <div style={{ padding: '8px', background: '#fff3cd', borderRadius: '4px', textAlign: 'center', fontSize: '14px', color: '#856404' }}>
                         Enquiry Pending
@@ -436,7 +492,7 @@ const Inventory = () => {
           </div>
         </div>
 
-        {/* Enquiry Modal */}
+        {}
         {showEnquiryModal && selectedItem && (
           <div className="modal-overlay" onClick={() => setShowEnquiryModal(false)}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px' }}>
@@ -517,7 +573,7 @@ const Inventory = () => {
                   </div>
 
                   {proposedPrice && proposedQuantity && (
-                    <div style={{
+                    <div className="enquiry-total-amount" style={{
                       padding: '12px',
                       background: '#f0f0f0',
                       borderRadius: '8px',
@@ -554,7 +610,8 @@ const Inventory = () => {
     );
   }
 
-  // Non-buyer view: Table view
+  
+
   if (error) {
     return (
       <div>
@@ -570,16 +627,9 @@ const Inventory = () => {
     <div className="page">
       <Sidebar />
       <div className="page-container">
+        <DashboardHeader />
         <div className="page-actions" style={{ marginBottom: '24px', display: 'flex', gap: '12px' }}>
-          {user?.userType === 'STOREKEEPER' && (
-            <Button
-              icon={Plus}
-              iconPosition="left"
-              onClick={() => navigate('/inventory/add')}
-            >
-              Add Inventory
-            </Button>
-          )}
+          {}
           <Button
             icon={FileDown}
             iconPosition="left"

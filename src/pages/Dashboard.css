@@ -16,7 +16,8 @@
 /* Dashboard Container */
 .dashboard-container {
   flex: 1;
-  margin-left: 260px; /* Account for fixed sidebar width */
+  margin-left: 260px;
+  /* Account for fixed sidebar width */
   padding: 32px;
   overflow-y: auto;
   transition: background-color 0.3s ease, margin-left 0.3s ease;
@@ -31,55 +32,7 @@
   }
 }
 
-/* Dashboard Header */
-.dashboard-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 32px;
-  padding-bottom: 24px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-  flex-wrap: wrap;
-  gap: 16px;
-}
-
-.dashboard-header .header-left {
-  flex: 1;
-  min-width: 200px;
-}
-
-.dashboard-header .header-left h1 {
-  font-size: 28px;
-  font-weight: 700;
-  color: #116530;
-  margin: 0 0 8px 0;
-  line-height: 1.2;
-}
-
-.dashboard-header .header-left p {
-  font-size: 14px;
-  color: #666;
-  margin: 0;
-}
-
-.dashboard-header .header-right {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.dark-mode .dashboard-header {
-  border-bottom-color: #404040;
-}
-
-.dark-mode .dashboard-header .header-left h1 {
-  color: #ffffff;
-}
-
-.dark-mode .dashboard-header .header-left p {
-  color: #b0b0b0;
-}
+/* Standardized header is now handled by DashboardHeader component */
 
 /* Receipts Styles */
 .receipts-list {
@@ -424,26 +377,6 @@
     padding: 20px 16px;
   }
 
-  .dashboard-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-  }
-
-  .dashboard-header .header-left {
-    width: 100%;
-  }
-
-  .dashboard-header .header-right {
-    width: 100%;
-    justify-content: flex-start;
-  }
-
-  .dashboard-actions-bar {
-    width: 100%;
-    justify-content: flex-end;
-  }
-
   .items-grid {
     grid-template-columns: 1fr;
   }
@@ -785,23 +718,6 @@
 }
 
 .dashboard-section {
-  margin-bottom: 32px;
-}
-
-.dashboard-section h2 {
-  font-size: 24px;
-  font-weight: 600;
-  color: #116530;
-  margin-bottom: 20px;
-}
-
-.dashboard-sections {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.dashboard-section {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   border-radius: 5px;
@@ -988,9 +904,191 @@
 .dark-mode .dashboard-section,
 .dark-mode .summary-card,
 .dark-mode .quick-action-card {
-  background: #2d2d2d;
-  border-color: #404040;
+  background: #2d2d2d !important;
+  color: #e0e0e0 !important;
+  border-color: #404040 !important;
+}
+
+.dark-mode .payment-summary-card h2,
+.dark-mode .payment-form-card h2 {
+  color: #4ade80;
+}
+
+.dark-mode .payment-summary-card p,
+.dark-mode .payment-form-card p,
+.dark-mode .payment-summary-card span,
+.dark-mode .payment-form-card span {
+  color: #e0e0e0 !important;
+}
+
+.dark-mode .payment-summary-card p[style*="color: #666"],
+.dark-mode .payment-form-card p[style*="color: #666"] {
+  color: #b0b0b0 !important;
+}
+
+.dark-mode .payment-summary-card strong,
+.dark-mode .payment-form-card strong {
   color: #ffffff;
+}
+
+.dark-mode .form-group label {
+  color: #e0e0e0;
+}
+
+.dark-mode .form-group input,
+.dark-mode .form-group select,
+.dark-mode .form-group textarea {
+  background: #1a1a1a;
+  color: #e0e0e0;
+  border-color: #404040;
+}
+
+.dark-mode .form-group input:focus,
+.dark-mode .form-group select:focus,
+.dark-mode .form-group textarea:focus {
+  border-color: #4ade80;
+  background: #1f1f1f;
+}
+
+.dark-mode .form-group input::placeholder,
+.dark-mode .form-group textarea::placeholder {
+  color: #888;
+}
+
+.dark-mode .modal-content {
+  background: #2d2d2d !important;
+  color: #e0e0e0;
+  border-color: #404040;
+}
+
+.dark-mode .modal-header h2 {
+  color: #4ade80;
+}
+
+.dark-mode .modal-body {
+  color: #e0e0e0;
+}
+
+.dark-mode .modal-body p,
+.dark-mode .modal-body strong {
+  color: #e0e0e0;
+}
+
+.dark-mode .modal-body input,
+.dark-mode .modal-body select,
+.dark-mode .modal-body textarea {
+  background: #1a1a1a;
+  color: #e0e0e0;
+  border-color: #404040;
+}
+
+.dark-mode .modal-body input:focus,
+.dark-mode .modal-body select:focus,
+.dark-mode .modal-body textarea:focus {
+  border-color: #4ade80;
+  background: #1f1f1f;
+}
+
+.dark-mode .modal-body small {
+  color: #aaa;
+}
+
+/* Dark mode for confirm payment modal white card */
+.dark-mode .modal-body > div[style*="background: #f9fafb"] {
+  background: #1a1a1a !important;
+  border: 1px solid #404040 !important;
+  color: #e0e0e0 !important;
+}
+
+.dark-mode .modal-body > div[style*="background: #f9fafb"] p {
+  color: #e0e0e0 !important;
+}
+
+.dark-mode .modal-body > div[style*="background: #f9fafb"] strong {
+  color: #ffffff !important;
+}
+
+/* Dark mode for enquiry form total amount card */
+.dark-mode .modal-body > div[style*="background: #f0f0f0"] {
+  background: #1a1a1a !important;
+  border: 1px solid #404040 !important;
+  color: #e0e0e0 !important;
+}
+
+.dark-mode .modal-body > div[style*="background: #f0f0f0"] p {
+  color: #e0e0e0 !important;
+}
+
+.dark-mode .modal-body > div[style*="background: #f0f0f0"] strong {
+  color: #ffffff !important;
+}
+
+/* Dark mode for payment amount display card */
+.dark-mode div[style*="background: #f9fafb"][style*="border: 1px solid #e0e0e0"] {
+  background: #1a1a1a !important;
+  border-color: #404040 !important;
+  color: #e0e0e0 !important;
+}
+
+.dark-mode div[style*="background: #f9fafb"][style*="border: 1px solid #e0e0e0"] span {
+  color: #e0e0e0 !important;
+}
+
+.dark-mode div[style*="background: #f9fafb"][style*="border: 1px solid #e0e0e0"] span[style*="color: #116530"] {
+  color: #4ade80 !important;
+}
+
+/* Dark mode for billing details section */
+.dark-mode div[style*="background: #f9fafb"][style*="border-radius: 8px"] {
+  background: #1a1a1a !important;
+  border: 1px solid #404040 !important;
+}
+
+.dark-mode div[style*="background: #f9fafb"][style*="border-radius: 8px"] h3 {
+  color: #4ade80 !important;
+}
+
+/* Dark mode for confirm payment details */
+.dark-mode .confirm-payment-details {
+  background: #1a1a1a !important;
+  border: 1px solid #404040 !important;
+  color: #e0e0e0 !important;
+}
+
+.dark-mode .confirm-payment-details p {
+  color: #e0e0e0 !important;
+}
+
+.dark-mode .confirm-payment-details strong {
+  color: #ffffff !important;
+}
+
+/* Dark mode for enquiry total amount card */
+.dark-mode .enquiry-total-amount {
+  background: #1a1a1a !important;
+  border: 1px solid #404040 !important;
+  color: #e0e0e0 !important;
+}
+
+.dark-mode .enquiry-total-amount p {
+  color: #e0e0e0 !important;
+}
+
+.dark-mode .enquiry-total-amount strong {
+  color: #ffffff !important;
+}
+
+/* Dark mode for enquiry form info text */
+.dark-mode .modal-body p[style*="color: #666"] {
+  color: #b0b0b0 !important;
+}
+
+.dark-mode .modal-body p[style*="color: #999"] {
+  color: #888 !important;
+}
+
+.dark-mode .modal-body small[style*="color: #666"] {
+  color: #b0b0b0 !important;
 }
 
 .dark-mode .receipt-header,
@@ -1134,9 +1232,18 @@
 }
 
 .dark-mode .payment-header h3,
+.dark-mode .payment-header h4,
 .dark-mode .transaction-header h3,
-.dark-mode .shipment-header h3 {
+.dark-mode .transaction-header h4,
+.dark-mode .shipment-header h3,
+.dark-mode .shipment-header h4 {
   color: #ffffff !important;
+}
+
+.dark-mode .payment-header p,
+.dark-mode .transaction-header p,
+.dark-mode .shipment-header p {
+  color: #b0b0b0 !important;
 }
 
 .dark-mode .payment-details,
@@ -1149,6 +1256,93 @@
 .dark-mode .transaction-details p,
 .dark-mode .shipment-details p {
   color: #b0b0b0 !important;
+}
+
+/* Dark mode for transaction detail labels and values */
+.dark-mode .transaction-details > div > div > p:first-child {
+  color: #b0b0b0 !important;
+}
+
+.dark-mode .transaction-details > div > div > p:last-child {
+  color: #ffffff !important;
+}
+
+/* Transaction detail label and value styles */
+.transaction-detail-label {
+  color: #666;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.transaction-detail-value {
+  font-weight: 600;
+  color: #262626;
+}
+
+.transaction-subtitle {
+  margin: 4px 0;
+  font-size: 12px;
+  color: #666;
+}
+
+.transaction-remaining-box {
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.transaction-remaining-label {
+  color: #666;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.transaction-remaining-value {
+  font-weight: 600;
+  color: #116530;
+}
+
+/* Dark mode for remaining quantity box */
+.dark-mode .transaction-details > div[style*="background"] {
+  background: #2d2d2d !important;
+}
+
+.dark-mode .transaction-details > div[style*="background"] p:first-child {
+  color: #b0b0b0 !important;
+}
+
+.dark-mode .transaction-details > div[style*="background"] p:last-child {
+  color: #2ea359 !important;
+}
+
+.dark-mode .transaction-detail-label,
+.dark-mode .transaction-subtitle,
+.dark-mode .transaction-remaining-label {
+  color: #b0b0b0 !important;
+}
+
+.dark-mode .transaction-detail-value {
+  color: #ffffff !important;
+}
+
+.dark-mode .transaction-remaining-box {
+  background: #2d2d2d !important;
+}
+
+.dark-mode .transaction-remaining-value {
+  color: #2ea359 !important;
+}
+
+/* Empty state for transactions */
+.no-transactions {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+}
+
+.dark-mode .no-transactions {
+  color: #b0b0b0;
 }
 
 .dark-mode .payment-details p strong,

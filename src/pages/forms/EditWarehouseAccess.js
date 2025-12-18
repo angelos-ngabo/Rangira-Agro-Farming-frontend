@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { dataService } from '../../services/dataService';
 import Sidebar from '../../components/layout/Sidebar';
-
+import DashboardHeader from '../../components/dashboard/DashboardHeader';
 import { Save } from 'lucide-react';
 import toast from 'react-hot-toast';
 import './Form.css';

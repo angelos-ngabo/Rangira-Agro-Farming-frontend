@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { dataService } from '../../services/dataService';
 import Sidebar from '../../components/layout/Sidebar';
-
+import DashboardHeader from '../../components/dashboard/DashboardHeader';
 import { Save } from 'lucide-react';
 import toast from 'react-hot-toast';
 import './Form.css';
@@ -17,9 +17,13 @@ const EditUser = () => {
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
   const [sectors, setSectors] = useState([]);
+  const [cells, setCells] = useState([]);
+  const [villages, setVillages] = useState([]);
   const [selectedProvince, setSelectedProvince] = useState('');
   const [selectedDistrict, setSelectedDistrict] = useState('');
   const [selectedSector, setSelectedSector] = useState('');
+  const [selectedCell, setSelectedCell] = useState('');
+  const [selectedVillage, setSelectedVillage] = useState('');
   const [warehouses, setWarehouses] = useState([]);
   const [formData, setFormData] = useState({
     userCode: '',
@@ -61,13 +65,15 @@ const EditUser = () => {
         status: user.status || 'ACTIVE',
       });
 
-      // Set location hierarchy if location exists
+      
+
       if (user.location) {
         const locationResponse = await dataService.getLocationById(user.location.id);
         const location = locationResponse.data;
 
         if (location.parent) {
-          // Navigate up the hierarchy to find province, district, sector
+          
+
           let current = location;
           const hierarchy = [];
 
@@ -81,20 +87,33 @@ const EditUser = () => {
             }
           }
 
-          // Reverse to get from province to sector
+          
+
           hierarchy.reverse();
 
           if (hierarchy.length > 0) {
             setSelectedProvince(hierarchy[0].id);
-            if (hierarchy.length > 1) {
+                if (hierarchy.length > 1) {
               const districtsResponse = await dataService.getChildLocations(hierarchy[0].id);
-              setDistricts(districtsResponse.data || []);
+              setDistricts(districtsResponse.data.map(d => ({ id: d.id, name: d.name, code: d.code })) || []);
               setSelectedDistrict(hierarchy[1].id);
 
               if (hierarchy.length > 2) {
                 const sectorsResponse = await dataService.getChildLocations(hierarchy[1].id);
-                setSectors(sectorsResponse.data || []);
+                setSectors(sectorsResponse.data.map(s => ({ id: s.id, name: s.name, code: s.code })) || []);
                 setSelectedSector(hierarchy[2].id);
+
+                if (hierarchy.length > 3) {
+                  const cellsResponse = await dataService.getChildLocations(hierarchy[2].id);
+                  setCells(cellsResponse.data.map(c => ({ id: c.id, name: c.name, code: c.code })) || []);
+                  setSelectedCell(hierarchy[3].id);
+
+                  if (hierarchy.length > 4) {
+                    const villagesResponse = await dataService.getChildLocations(hierarchy[3].id);
+                    setVillages(villagesResponse.data.map(v => ({ id: v.id, name: v.name, code: v.code })) || []);
+                    setSelectedVillage(hierarchy[4].id);
+                  }
+                }
               }
             }
           }
@@ -112,9 +131,10 @@ const EditUser = () => {
   const fetchProvinces = async () => {
     try {
       const response = await dataService.getProvinces();
-      setProvinces(response.data || []);
+      setProvinces(response.data.map(p => ({ id: p.id, name: p.name, code: p.code })));
     } catch (error) {
       console.error('Error fetching provinces:', error);
+      toast.error('Failed to load provinces');
     }
   };
 
@@ -129,35 +149,115 @@ const EditUser = () => {
 
   useEffect(() => {
     if (selectedProvince) {
-      dataService.getChildLocations(selectedProvince)
-        .then((response) => {
-          setDistricts(response.data || []);
-          if (!formData.locationId) {
-            setSelectedDistrict('');
-            setSelectedSector('');
-            setSectors([]);
-          }
-        })
-        .catch((error) => {
+      const fetchDistricts = async () => {
+        try {
+          const response = await dataService.getChildLocations(selectedProvince);
+          setDistricts(response.data.map(d => ({ id: d.id, name: d.name, code: d.code })));
+        } catch (error) {
           console.error('Error fetching districts:', error);
-        });
+          toast.error('Failed to load districts');
+          setDistricts([]);
+        }
+      };
+      fetchDistricts();
+      if (!formData.locationId) {
+        setSelectedDistrict('');
+        setSelectedSector('');
+        setSelectedCell('');
+        setSelectedVillage('');
+        setSectors([]);
+        setCells([]);
+        setVillages([]);
+      }
+    } else {
+      setDistricts([]);
+      setSelectedDistrict('');
+      setSelectedSector('');
+      setSelectedCell('');
+      setSelectedVillage('');
+      setSectors([]);
+      setCells([]);
+      setVillages([]);
     }
   }, [selectedProvince]);
 
   useEffect(() => {
     if (selectedDistrict) {
-      dataService.getChildLocations(selectedDistrict)
-        .then((response) => {
-          setSectors(response.data || []);
-          if (!formData.locationId) {
-            setSelectedSector('');
-          }
-        })
-        .catch((error) => {
+      const fetchSectors = async () => {
+        try {
+          const response = await dataService.getChildLocations(selectedDistrict);
+          setSectors(response.data.map(s => ({ id: s.id, name: s.name, code: s.code })));
+        } catch (error) {
           console.error('Error fetching sectors:', error);
-        });
+          toast.error('Failed to load sectors');
+          setSectors([]);
+        }
+      };
+      fetchSectors();
+      if (!formData.locationId) {
+        setSelectedSector('');
+        setSelectedCell('');
+        setSelectedVillage('');
+        setCells([]);
+        setVillages([]);
+      }
+    } else {
+      setSectors([]);
+      setSelectedSector('');
+      setSelectedCell('');
+      setSelectedVillage('');
+      setCells([]);
+      setVillages([]);
     }
   }, [selectedDistrict]);
+
+  useEffect(() => {
+    if (selectedSector) {
+      const fetchCells = async () => {
+        try {
+          const response = await dataService.getChildLocations(selectedSector);
+          setCells(response.data.map(c => ({ id: c.id, name: c.name, code: c.code })));
+        } catch (error) {
+          console.error('Error fetching cells:', error);
+          toast.error('Failed to load cells');
+          setCells([]);
+        }
+      };
+      fetchCells();
+      if (!formData.locationId) {
+        setSelectedCell('');
+        setSelectedVillage('');
+        setVillages([]);
+      }
+    } else {
+      setCells([]);
+      setSelectedCell('');
+      setSelectedVillage('');
+      setVillages([]);
+    }
+  }, [selectedSector]);
+
+  useEffect(() => {
+    if (selectedCell) {
+      const fetchVillages = async () => {
+        try {
+          const response = await dataService.getChildLocations(selectedCell);
+          setVillages(response.data.map(v => ({ id: v.id, name: v.name, code: v.code })));
+        } catch (error) {
+          console.error('Error fetching villages:', error);
+          toast.error('Failed to load villages');
+          setVillages([]);
+        }
+      };
+      fetchVillages();
+      if (!formData.locationId) {
+        setSelectedVillage('');
+      }
+    } else {
+      setVillages([]);
+      setSelectedVillage('');
+    }
+  }, [selectedCell]);
 
   const handleChange = (e) => {
     setFormData({
@@ -169,14 +269,29 @@ const EditUser = () => {
   const handleSectorChange = (e) => {
     const sectorId = e.target.value;
     setSelectedSector(sectorId);
-    setFormData(prev => ({ ...prev, locationId: sectorId }));
+    setSelectedCell('');
+    setSelectedVillage('');
+    setFormData(prev => ({ ...prev, locationId: '' }));
+  };
+
+  const handleCellChange = (e) => {
+    const cellId = e.target.value;
+    setSelectedCell(cellId);
+    setSelectedVillage('');
+    setFormData(prev => ({ ...prev, locationId: '' }));
+  };
+
+  const handleVillageChange = (e) => {
+    const villageId = e.target.value;
+    setSelectedVillage(villageId);
+    setFormData(prev => ({ ...prev, locationId: villageId }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.locationId) {
-      toast.error('Please select a location (Province → District → Sector)');
+    if (!selectedProvince || !selectedDistrict || !selectedSector || !selectedCell || !selectedVillage) {
+      toast.error('Please select a complete location (Province → District → Sector → Cell → Village)');
       return;
     }
 
@@ -187,30 +302,57 @@ const EditUser = () => {
 
     setLoading(true);
     try {
-      // Update user
       await dataService.updateUser(id, {
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
         phoneNumber: formData.phoneNumber,
-        locationId: formData.locationId,
+        locationId: selectedVillage,
         userType: formData.userType,
         status: formData.status,
       });
 
-      // If storekeeper and warehouse changed, update warehouse access
+      
+
       if (formData.userType === 'STOREKEEPER' && formData.warehouseId) {
         try {
-          // Get current user to check existing warehouse assignment
+          
+
           const currentUserResponse = await dataService.getUserById(id);
           const currentUser = currentUserResponse.data;
           const oldWarehouseId = currentUser.warehouseAccesses?.find(
             access => access.accessLevel === 'MANAGER' && access.isActive
           )?.warehouse?.id;
 
-          // If warehouse changed, assign to new warehouse
+          
+
           if (oldWarehouseId !== parseInt(formData.warehouseId)) {
+            
+
+            const checkResponse = await dataService.checkStorekeeperAssignment(parseInt(id), parseInt(formData.warehouseId));
+            const checkData = checkResponse.data;
+            
+            if (checkData.requiresConfirmation) {
+              
+
+              const confirmed = window.confirm(
+                `⚠️ ${checkData.message}\n\n` +
+                `Existing Warehouse: ${checkData.existingWarehouseName}\n` +
+                `New Warehouse: ${formData.warehouseId}\n\n` +
+                `Do you want to proceed with the replacement?`
+              );
+              
+              if (!confirmed) {
+                toast.info('Warehouse assignment cancelled. User updated without changing warehouse assignment.');
+                return;
+              }
+            }
+            
             await dataService.assignStorekeeperToWarehouse(parseInt(id), parseInt(formData.warehouseId));
+            
+
+            window.dispatchEvent(new Event('warehouse-assignment-changed'));
+            localStorage.setItem('warehouse-assignment-last-update', Date.now().toString());
             toast.success('User updated and warehouse reassigned successfully!');
           } else {
             toast.success('User updated successfully!');
@@ -248,11 +390,10 @@ const EditUser = () => {
   return (
     <div className="form-page">
       <Sidebar />
-
-      <div className="form-container">
-        <div className="form-card">
-          <h1>Edit User</h1>
-          <p className="form-subtitle">Update user information</p>
+      <div className="form-layout-wrapper">
+        <DashboardHeader title="Edit User" subtitle="Update user information" />
+        <div className="form-container">
+          <div className="form-card">
 
           <form onSubmit={handleSubmit} className="form">
             <div className="form-group">
@@ -419,6 +560,42 @@ const EditUser = () => {
                     ))}
                   </select>
                 </div>
+
+                <div className="form-group">
+                  <label htmlFor="cell">Cell *</label>
+                  <select
+                    id="cell"
+                    value={selectedCell}
+                    onChange={handleCellChange}
+                    required
+                    disabled={!selectedSector}
+                  >
+                    <option value="">Select Cell</option>
+                    {cells.map((cell) => (
+                      <option key={cell.id} value={cell.id}>
+                        {cell.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="village">Village *</label>
+                  <select
+                    id="village"
+                    value={selectedVillage}
+                    onChange={handleVillageChange}
+                    required
+                    disabled={!selectedCell}
+                  >
+                    <option value="">Select Village</option>
+                    {villages.map((village) => (
+                      <option key={village.id} value={village.id}>
+                        {village.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -441,6 +618,7 @@ const EditUser = () => {
               </button>
             </div>
           </form>
+          </div>
         </div>
       </div>
     </div>

@@ -27,7 +27,8 @@ ChartJS.register(
   Filler
 );
 
-// Revenue Trend Chart (Line Chart)
+
+
 export const RevenueTrendChart = ({ data }) => {
   const chartData = {
     labels: data?.labels || [],
@@ -95,7 +96,8 @@ export const RevenueTrendChart = ({ data }) => {
   return <Line data={chartData} options={options} />;
 };
 
-// User Growth Chart (Bar Chart)
+
+
 export const UserGrowthChart = ({ data }) => {
   const chartData = {
     labels: data?.labels || [],
@@ -149,7 +151,8 @@ export const UserGrowthChart = ({ data }) => {
   return <Bar data={chartData} options={options} />;
 };
 
-// Inventory Distribution Pie Chart
+
+
 export const InventoryDistributionChart = ({ data }) => {
   const chartData = {
     labels: data?.labels || [],
@@ -205,7 +208,8 @@ export const InventoryDistributionChart = ({ data }) => {
   return <Pie data={chartData} options={options} />;
 };
 
-// Transaction Status Doughnut Chart
+
+
 export const TransactionStatusChart = ({ data }) => {
   const chartData = {
     labels: data?.labels || [],
@@ -213,9 +217,12 @@ export const TransactionStatusChart = ({ data }) => {
       {
         data: data?.values || [],
         backgroundColor: [
-          '#2ea359', // Completed
-          '#f59e0b', // Pending
-          '#ef4444', // Failed
+          '#2ea359', 
+
+          '#f59e0b', 
+
+          '#ef4444', 
+
         ],
         borderColor: '#ffffff',
         borderWidth: 3,

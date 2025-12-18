@@ -24,42 +24,13 @@
   z-index: 1;
 }
 
-.page-header {
-  position: fixed;
-  top: 0;
-  left: 260px;
-  right: 0;
-  width: calc(100% - 260px);
-  min-width: calc(100% - 260px);
-  max-width: calc(100% - 260px);
-  background: linear-gradient(135deg, #116530 0%, #c5d512 100%);
-  background-size: 100% 100%;
-  background-repeat: no-repeat;
-  padding: 20px 32px;
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  z-index: 1001;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  margin: 0;
-  border: none;
-  outline: none;
-  box-sizing: border-box;
-  overflow: hidden;
-}
+/* Standardized header is now handled by DashboardHeader component */
 
 .page-actions {
   display: flex;
   gap: 12px;
   align-items: center;
   flex-wrap: wrap;
-}
-
-.page-header h1 {
-  font-size: 40px;
-  font-weight: bold;
-  color: #ffffff;
-  text-transform: uppercase;
 }
 
 .btn-primary {
@@ -363,9 +334,7 @@
   color: #ffffff;
 }
 
-.dark-mode .page-header {
-  background: linear-gradient(135deg, #2d2d2d 0%, #3a3a3a 100%);
-}
+/* Standardized header is now handled by DashboardHeader component */
 
 .dark-mode .card,
 .dark-mode .data-table,
@@ -431,13 +400,7 @@
   color: #ffffff;
 }
 
-.dark-mode .page-header {
-  background: linear-gradient(135deg, #2d2d2d 0%, #3a3a3a 100%);
-}
-
-.dark-mode .page-header h1 {
-  color: #ffffff;
-}
+/* Standardized header is now handled by DashboardHeader component */
 
 .dark-mode .page-actions {
   color: #ffffff;

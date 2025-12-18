@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useAuth } from '../contexts/AuthContext';
 import { dataService } from '../services/dataService';
 import Sidebar from '../components/layout/Sidebar';
+import DashboardHeader from '../components/dashboard/DashboardHeader';
 
 import Button from '../components/common/Button';
 import { Mail, User, Package } from 'lucide-react';
@@ -20,26 +21,30 @@ const Messages = () => {
   const [relatedInventory, setRelatedInventory] = useState(null);
   const [availableUsers, setAvailableUsers] = useState([]);
 
-  // Fetch available users for messaging based on user type
+  
+
   const { data: usersData, isLoading: usersLoading } = useQuery(
     ['availableUsers', user?.userType],
     async () => {
       if (!user?.userType) return [];
 
       try {
-        // Storekeepers can message Farmers
+        
+
         if (user.userType === 'STOREKEEPER') {
           const response = await dataService.getUsersByType('FARMER');
           return response.data || [];
         }
 
-        // Buyers can message Farmers
+        
+
         if (user.userType === 'BUYER') {
           const response = await dataService.getUsersByType('FARMER');
           return response.data || [];
         }
 
-        // Farmers can message Buyers and Storekeepers
+        
+
         if (user.userType === 'FARMER') {
           const [buyersResponse, storekeepersResponse] = await Promise.all([
             dataService.getUsersByType('BUYER'),
@@ -65,28 +70,33 @@ const Messages = () => {
     }
   }, [usersData]);
 
-  // Get all messages for current user
+  
+
   const { data: messagesData, isLoading: messagesLoading, refetch: refetchMessages } = useQuery(
     ['messages', user?.id],
     async () => {
       const response = await dataService.getMessagesForUser(user?.id, { page: 0, size: 100 });
-      return response.data || response; // Handle both response.data and direct response
+      return response.data || response; 
+
     },
     {
       enabled: !!user?.id,
-      refetchInterval: 30000, // Refetch every 30 seconds
+      refetchInterval: 30000, 
+
       refetchOnWindowFocus: true
     }
   );
 
-  // Get unread count
+  
+
   const { data: unreadCount } = useQuery(
     ['unreadCount', user?.id],
     () => dataService.getUnreadMessageCount(user?.id),
     { enabled: !!user?.id, refetchInterval: 30000 }
   );
 
-  // Get conversation
+  
+
   const { data: conversation, refetch: refetchConversation } = useQuery(
     ['conversation', selectedConversation?.userId1, selectedConversation?.userId2],
     async () => {
@@ -101,12 +111,14 @@ const Messages = () => {
     },
     {
       enabled: !!selectedConversation,
-      refetchInterval: 5000, // Refetch every 5 seconds for real-time updates
+      refetchInterval: 5000, 
+
       refetchOnWindowFocus: true
     }
   );
 
-  // Send message mutation
+  
+
   const sendMessageMutation = useMutation(
     (data) => dataService.sendMessage(data),
     {
@@ -116,15 +128,18 @@ const Messages = () => {
         setSubject('');
         setShowCompose(false);
 
-        // Invalidate and refetch all message-related queries
+        
+
         queryClient.invalidateQueries(['messages', user?.id]);
         queryClient.invalidateQueries(['unreadCount', user?.id]);
 
-        // If we have a selected conversation, refetch it
+        
+
         if (selectedConversation) {
           refetchConversation();
         } else if (response?.data?.receiver?.id) {
-          // If we just sent a message, select that conversation
+          
+
           const receiverId = response.data.receiver.id;
           setSelectedConversation({
             userId1: user?.id,
@@ -140,7 +155,8 @@ const Messages = () => {
     }
   );
 
-  // Mark as read mutation
+  
+
   const markAsReadMutation = useMutation(
     (messageId) => dataService.markMessageAsRead(messageId),
     {
@@ -154,17 +170,20 @@ const Messages = () => {
     }
   );
 
-  // Get unique conversations with initiator info
+  
+
   const conversations = React.useMemo(() => {
     if (!messagesData?.data?.content && !messagesData?.content) return [];
 
     const messages = messagesData?.data?.content || messagesData?.content || [];
 
     const conversationMap = new Map();
-    const initiatorMap = new Map(); // Track who initiated each conversation
+    const initiatorMap = new Map(); 
+
 
     messages.forEach((message) => {
-      // Skip messages with missing sender or receiver
+      
+
       if (!message.sender || !message.receiver || !message.sender.id || !message.receiver.id) {
         console.warn('Skipping message with missing sender or receiver:', message);
         return;
@@ -174,7 +193,8 @@ const Messages = () => {
       const key = `${Math.min(message.sender.id, message.receiver.id)}-${Math.max(message.sender.id, message.receiver.id)}`;
 
       if (!conversationMap.has(key)) {
-        // Find the first message to determine initiator
+        
+
         const firstMessage = messages
           .filter(m => {
             const mOtherUser = m.sender.id === user?.id ? m.receiver : m.sender;
@@ -236,10 +256,12 @@ const Messages = () => {
       return;
     }
 
-    // If replying to a conversation, try to find the last message to reply to
+    
+
     let repliedToMessageId = null;
     if (selectedConversation && conversation && conversation.length > 0) {
-      // Find the last message in the conversation (most recent)
+      
+
       const sortedMessages = [...conversation].sort((a, b) =>
         new Date(b.createdAt) - new Date(a.createdAt)
       );
@@ -265,7 +287,8 @@ const Messages = () => {
     setMessageText('');
   };
 
-  // Auto-scroll to bottom when conversation changes or new messages arrive
+  
+
   const messagesEndRef = React.useRef(null);
 
   const scrollToBottom = () => {
@@ -276,7 +299,8 @@ const Messages = () => {
     scrollToBottom();
   }, [conversation, selectedConversation]);
 
-  // Mark messages as read when conversation is opened
+  
+
   useEffect(() => {
     if (conversation && selectedConversation && Array.isArray(conversation)) {
       conversation.forEach((message) => {
@@ -287,21 +311,25 @@ const Messages = () => {
     }
   }, [conversation, selectedConversation, user?.id]);
 
-  // Filter conversations based on user type
+  
+
   const filteredConversations = React.useMemo(() => {
     if (!conversations) return [];
 
-    // Storekeepers can only see conversations with Farmers
+    
+
     if (user?.userType === 'STOREKEEPER') {
       return conversations.filter(conv => conv.otherUser.userType === 'FARMER');
     }
 
-    // Buyers can only see conversations with Farmers
+    
+
     if (user?.userType === 'BUYER') {
       return conversations.filter(conv => conv.otherUser.userType === 'FARMER');
     }
 
-    // Farmers can see conversations with Buyers and Storekeepers
+    
+
     if (user?.userType === 'FARMER') {
       return conversations.filter(conv =>
         conv.otherUser.userType === 'BUYER' || conv.otherUser.userType === 'STOREKEEPER'
@@ -311,7 +339,8 @@ const Messages = () => {
     return conversations;
   }, [conversations, user?.userType]);
 
-  // Check if user can access messages (not admin)
+  
+
   if (user?.userType === 'ADMIN') {
     return (
       <div className="messages-page">
@@ -333,10 +362,11 @@ const Messages = () => {
     <div className="messages-page">
       <Sidebar />
       <div className="messages-content">
-        <div className="messages-header">
-          <h1>Messages</h1>
+        {}
+        <DashboardHeader />
+        <div className="messages-header-actions" style={{ display: 'flex', justifyContent: 'flex-end', padding: '0 24px', marginBottom: '16px' }}>
           {unreadCount > 0 && (
-            <span className="unread-badge">{unreadCount} unread</span>
+            <span className="unread-badge" style={{ marginRight: '16px', alignSelf: 'center' }}>{unreadCount} unread</span>
           )}
           <Button onClick={handleComposeNew} icon={Mail} iconPosition="left">
             New Message
@@ -525,12 +555,14 @@ const Messages = () => {
                 <div className="messages-list">
                   {conversation && Array.isArray(conversation) && conversation.length > 0 ? (
                     (() => {
-                      // Sort messages by creation time
+                      
+
                       const sortedMessages = conversation
                         .filter(message => message && message.sender && message.receiver)
                         .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
 
-                      // Build message threads (group replies with their parent messages)
+                      
+
                       const messageMap = new Map();
                       const rootMessages = [];
 
@@ -540,10 +572,12 @@ const Messages = () => {
 
                       sortedMessages.forEach(message => {
                         if (message.repliedToMessageId && messageMap.has(message.repliedToMessageId)) {
-                          // This is a reply
+                          
+
                           messageMap.get(message.repliedToMessageId).replies.push(messageMap.get(message.id));
                         } else {
-                          // This is a root message
+                          
+
                           rootMessages.push(messageMap.get(message.id));
                         }
                       });
@@ -552,7 +586,7 @@ const Messages = () => {
                         <>
                           {rootMessages.map((rootMessage) => (
                             <div key={rootMessage.id} className="message-thread">
-                              {/* Root Message */}
+                              {}
                               <div
                                 className={`message-item ${rootMessage.sender?.id === user?.id ? 'sent' : 'received'
                                   } ${!rootMessage.isRead && rootMessage.receiver?.id === user?.id ? 'unread' : ''}`}
@@ -584,7 +618,7 @@ const Messages = () => {
                                 )}
                               </div>
 
-                              {/* Replies */}
+                              {}
                               {rootMessage.replies && rootMessage.replies.length > 0 && (
                                 <div className="message-replies">
                                   {rootMessage.replies.map((reply) => (

@@ -1,0 +1,325 @@
+.global-search {
+  position: relative;
+  display: inline-block;
+}
+
+.global-search-trigger {
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #333;
+  transition: all 0.3s ease;
+  font-size: 15px;
+  font-weight: 500;
+  position: relative;
+  white-space: nowrap;
+}
+
+.global-search-trigger:hover {
+  background: rgba(17, 101, 48, 0.1);
+  color: #116530;
+}
+
+.global-search-trigger:active {
+  transform: scale(0.98);
+}
+
+/* Navbar-specific styling */
+.nav-search-item .global-search-trigger {
+  color: #212529;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 15px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.nav-search-item .global-search-trigger:hover {
+  background: rgba(17, 101, 48, 0.08);
+  color: #116530;
+}
+
+.dark-mode .global-search-trigger {
+  color: #ffffff;
+}
+
+.dark-mode .global-search-trigger:hover {
+  background: rgba(17, 101, 48, 0.2);
+  color: #2ea359;
+}
+
+.dark-mode .nav-search-item .global-search-trigger {
+  color: #ffffff;
+}
+
+.dark-mode .nav-search-item .global-search-trigger:hover {
+  background: rgba(17, 101, 48, 0.15);
+  color: #2ea359;
+}
+
+.global-search-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 400px;
+  max-width: 90vw;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.dark-mode .global-search-dropdown {
+  background: #2d2d2d;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.global-search-input-wrapper {
+  position: relative;
+  padding: 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.dark-mode .global-search-input-wrapper {
+  border-bottom-color: #404040;
+}
+
+.global-search-icon {
+  position: absolute;
+  right: 28px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #999;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.global-search-input {
+  width: 100%;
+  padding: 10px 40px 10px 16px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.global-search-input:focus {
+  border-color: #116530;
+}
+
+.dark-mode .global-search-input {
+  background: #1a1a1a;
+  border-color: #404040;
+  color: #fff;
+}
+
+.dark-mode .global-search-input:focus {
+  border-color: #116530;
+}
+
+.global-search-clear {
+  position: absolute;
+  right: 50px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #999;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+  z-index: 2;
+}
+
+.global-search-clear:hover {
+  color: #333;
+}
+
+.dark-mode .global-search-clear:hover {
+  color: #fff;
+}
+
+.global-search-loading {
+  padding: 24px;
+  text-align: center;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.dark-mode .global-search-loading {
+  color: #b0b0b0;
+}
+
+.loader-small {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(17, 101, 48, 0.2);
+  border-top-color: #116530;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.global-search-results {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.global-search-result-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.global-search-result-item:last-child {
+  border-bottom: none;
+}
+
+.global-search-result-item:hover {
+  background: #f5f5f5;
+}
+
+.dark-mode .global-search-result-item {
+  border-bottom-color: #404040;
+}
+
+.dark-mode .global-search-result-item:hover {
+  background: #1a1a1a;
+}
+
+.global-search-result-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.global-search-result-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: #333;
+}
+
+.dark-mode .global-search-result-title {
+  color: #fff;
+}
+
+.global-search-result-description {
+  font-size: 12px;
+  color: #666;
+}
+
+.dark-mode .global-search-result-description {
+  color: #b0b0b0;
+}
+
+.global-search-no-results {
+  padding: 24px;
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+}
+
+.dark-mode .global-search-no-results {
+  color: #b0b0b0;
+}
+
+/* Navbar search item styling */
+.nav-search-item {
+  display: flex;
+  align-items: center;
+  margin-left: 0;
+  list-style: none;
+}
+
+.nav-search-item .global-search {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+/* Make search button look like a nav link */
+.nav-search-item .global-search-trigger {
+  color: inherit;
+  font-family: inherit;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  border-radius: 0;
+  background: transparent;
+  border: none;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.nav-search-item .global-search-trigger::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #116530;
+  transition: width 0.3s ease;
+}
+
+.nav-search-item .global-search-trigger:hover::after,
+.nav-search-item .global-search-trigger:focus::after {
+  width: 100%;
+}
+
+.nav-search-item .global-search-trigger:hover {
+  background: transparent;
+  color: #116530;
+}
+
+/* Active state for navbar search */
+.nav-search-item .global-search-trigger.active {
+  color: #116530;
+}
+
+.nav-search-item .global-search-trigger.active::after {
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .global-search-dropdown {
+    width: calc(100vw - 32px);
+    right: -16px;
+  }
+  
+  .nav-search-item {
+    margin-left: 0;
+    margin-top: 8px;
+    width: 100%;
+  }
+  
+  .nav-search-item .global-search {
+    width: 100%;
+  }
+  
+  .nav-search-item .global-search-trigger {
+    width: 100%;
+    justify-content: flex-start;
+    padding: 10px 14px;
+  }
+}
+

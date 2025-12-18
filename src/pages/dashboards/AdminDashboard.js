@@ -3,7 +3,7 @@ import { useQuery } from 'react-query';
 import { useAuth } from '../../contexts/AuthContext';
 import { dataService } from '../../services/dataService';
 import Sidebar from '../../components/layout/Sidebar';
-import NotificationBell from '../../components/dashboard/NotificationBell';
+import DashboardHeader from '../../components/dashboard/DashboardHeader';
 import WarehouseCapacityCard from '../../components/dashboard/WarehouseCapacityCard';
 import {
   RevenueTrendChart,
@@ -32,6 +32,7 @@ import {
   Leaf,
   FileDown,
   DollarSign,
+  Coins,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -41,29 +42,31 @@ import './AdminDashboard.css';
 const AdminDashboard = () => {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
-  const [dateRange, setDateRange] = useState('30days');
 
   const { data: stats, isLoading: statsLoading, refetch } = useQuery(
     'adminDashboardStats',
     async () => {
       try {
-        const [users, warehouses, inventories, transactions] = await Promise.all([
+        const [users, warehouses, inventories, transactions, commission] = await Promise.all([
           dataService.getUsers({ page: 0, size: 10000 }),
           dataService.getWarehouses({ page: 0, size: 10000 }),
           dataService.getInventories({ page: 0, size: 10000 }),
           dataService.getTransactions({ page: 0, size: 10000 }),
+          dataService.getTotalSystemCommission().catch(() => ({ data: 0 })),
         ]);
 
         const usersList = users.data?.content || [];
         const warehousesList = warehouses.data?.content || [];
         const inventoriesList = inventories.data?.content || [];
         const transactionsList = transactions.data?.content || [];
+        const totalCommission = parseFloat(commission.data || 0);
 
         return {
           totalUsers: users.data?.totalElements || usersList.length || 0,
           totalWarehouses: warehouses.data?.totalElements || warehousesList.length || 0,
           totalInventories: inventories.data?.totalElements || inventoriesList.length || 0,
           totalTransactions: transactions.data?.totalElements || transactionsList.length || 0,
+          totalCommission,
           users: usersList,
           warehouses: warehousesList,
           inventories: inventoriesList,
@@ -76,6 +79,7 @@ const AdminDashboard = () => {
           totalWarehouses: 0,
           totalInventories: 0,
           totalTransactions: 0,
+          totalCommission: 0,
           users: [],
           warehouses: [],
           inventories: [],
@@ -110,6 +114,7 @@ const AdminDashboard = () => {
       totalInventories: stats.totalInventories,
       totalTransactions: stats.totalTransactions,
       totalRevenue,
+      totalCommission: stats.totalCommission || 0,
       pendingPayments,
       activeFarmers,
       activeBuyers,
@@ -224,6 +229,7 @@ const AdminDashboard = () => {
         user: `${t.buyer?.firstName || ''} ${t.buyer?.lastName || ''}`.trim() || 'Unknown',
         amount: parseFloat(t.totalAmount || 0),
         status: t.paymentStatus,
+        deliveryStatus: t.deliveryStatus,
         timestamp: new Date(t.transactionDate),
       }));
 
@@ -352,23 +358,7 @@ const AdminDashboard = () => {
     <div className="dashboard">
       <Sidebar />
       <div className="dashboard-container">
-        <div className="dashboard-header">
-          <div className="header-left">
-            <h1>Admin Dashboard</h1>
-            <p>Welcome back, {user?.firstName}!</p>
-          </div>
-          <div className="header-right">
-            <NotificationBell />
-            <div className="date-filter">
-              <Calendar size={18} />
-              <select value={dateRange} onChange={(e) => setDateRange(e.target.value)}>
-                <option value="7days">Last 7 Days</option>
-                <option value="30days">Last 30 Days</option>
-                <option value="90days">Last 90 Days</option>
-              </select>
-            </div>
-          </div>
-        </div>
+        <DashboardHeader />
 
         <div className="stats-grid">
           {statCards.map((stat, index) => {
@@ -408,6 +398,16 @@ const AdminDashboard = () => {
                     <h3>Total Revenue</h3>
                     <p className="summary-value">RWF {businessSummary.totalRevenue.toLocaleString()}</p>
                     <span className="summary-label">From completed transactions</span>
+                  </div>
+                </div>
+                <div className="summary-card">
+                  <div className="summary-icon" style={{ backgroundColor: '#10b98120' }}>
+                    <Coins size={24} style={{ color: '#10b981' }} />
+                  </div>
+                  <div className="summary-content">
+                    <h3>System Profit</h3>
+                    <p className="summary-value">RWF {businessSummary.totalCommission.toLocaleString()}</p>
+                    <span className="summary-label">5% commission from all transactions</span>
                   </div>
                 </div>
                 <div className="summary-card">
@@ -567,8 +567,23 @@ const AdminDashboard = () => {
                       )}
                     </div>
                   </div>
-                  <div className={`activity-status status-${activity.status?.toLowerCase()}`}>
-                    {activity.status}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-end' }}>
+                    {activity.type === 'Transaction' ? (
+                      <>
+                        <div className={`activity-status status-${activity.status?.toLowerCase()}`}>
+                          Payment: {activity.status}
+                        </div>
+                        {activity.deliveryStatus && (
+                          <div className={`activity-status status-${activity.deliveryStatus?.toLowerCase()}`}>
+                            Delivery: {activity.deliveryStatus}
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <div className={`activity-status status-${activity.status?.toLowerCase()}`}>
+                        {activity.status}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))

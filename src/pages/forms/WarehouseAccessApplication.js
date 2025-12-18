@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { dataService } from '../../services/dataService';
 import Sidebar from '../../components/layout/Sidebar';
-
+import DashboardHeader from '../../components/dashboard/DashboardHeader';
 import { Send } from 'lucide-react';
 import toast from 'react-hot-toast';
 import './Form.css';
@@ -13,12 +13,6 @@ const WarehouseAccessApplication = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [warehouses, setWarehouses] = useState([]);
-  const [provinces, setProvinces] = useState([]);
-  const [districts, setDistricts] = useState([]);
-  const [sectors, setSectors] = useState([]);
-  const [selectedProvince, setSelectedProvince] = useState('');
-  const [selectedDistrict, setSelectedDistrict] = useState('');
-  const [selectedSector, setSelectedSector] = useState('');
 
   const [cropTypes, setCropTypes] = useState([]);
   const [cropImage, setCropImage] = useState(null);
@@ -35,7 +29,8 @@ const WarehouseAccessApplication = () => {
     cropNotes: '',
     notes: '',
     cropImageUrl: '',
-    desiredPricePerKg: '', // Farmer's desired price per kg/unit
+    desiredPricePerKg: '', 
+
   });
 
   useEffect(() => {
@@ -43,24 +38,15 @@ const WarehouseAccessApplication = () => {
       toast.error('Only farmers can apply for warehouse access');
       navigate('/dashboard');
     }
-    fetchProvinces();
     fetchWarehouses();
     fetchCropTypes();
   }, [user, navigate]);
 
-  const fetchProvinces = async () => {
-    try {
-      const response = await dataService.getProvinces();
-      setProvinces(response.data || []);
-    } catch (error) {
-      console.error('Error fetching provinces:', error);
-    }
-  };
-
   const fetchWarehouses = async () => {
     try {
       const response = await dataService.getWarehouses({ page: 0, size: 100, status: 'ACTIVE' });
-      setWarehouses(response.data?.content || []);
+      const allWarehouses = response.data?.content || [];
+      setWarehouses(allWarehouses);
     } catch (error) {
       console.error('Error fetching warehouses:', error);
     }
@@ -75,41 +61,6 @@ const WarehouseAccessApplication = () => {
     }
   };
 
-  useEffect(() => {
-    if (selectedProvince) {
-      dataService.getChildLocations(selectedProvince)
-        .then((response) => {
-          setDistricts(response.data || []);
-          setSelectedDistrict('');
-          setSelectedSector('');
-          setSectors([]);
-        })
-        .catch((error) => {
-          console.error('Error fetching districts:', error);
-        });
-    }
-  }, [selectedProvince]);
-
-  useEffect(() => {
-    if (selectedDistrict) {
-      dataService.getChildLocations(selectedDistrict)
-        .then((response) => {
-          setSectors(response.data || []);
-          setSelectedSector('');
-        })
-        .catch((error) => {
-          console.error('Error fetching sectors:', error);
-        });
-    }
-  }, [selectedDistrict]);
-
-  useEffect(() => {
-    if (selectedSector) {
-      // Filter warehouses by selected sector
-      const filtered = warehouses.filter(w => w.location?.id === parseInt(selectedSector));
-      // Update warehouse list or show filtered results
-    }
-  }, [selectedSector, warehouses]);
 
   const handleChange = (e) => {
     setFormData({
@@ -133,7 +84,8 @@ const WarehouseAccessApplication = () => {
 
     setLoading(true);
     try {
-      // Validate required fields
+      
+
       if (!user?.id) {
         toast.error('User information is missing. Please log in again.');
         setLoading(false);
@@ -147,7 +99,8 @@ const WarehouseAccessApplication = () => {
         return;
       }
 
-      // Prepare the request payload
+      
+
       const payload = {
         userId: parseInt(user.id),
         warehouseId: warehouseId,
@@ -157,22 +110,26 @@ const WarehouseAccessApplication = () => {
         isActive: false,
       };
 
-      // Only include requestedCapacityKg if it's a valid number
+      
+
       if (formData.requestedCapacityKg && !isNaN(parseFloat(formData.requestedCapacityKg))) {
         payload.requestedCapacityKg = parseFloat(formData.requestedCapacityKg);
       }
 
-      // Only include cropTypeId if it's provided
+      
+
       if (formData.cropTypeId) {
         payload.cropTypeId = parseInt(formData.cropTypeId);
       }
 
-      // Only include cropQuantityKg if it's a valid number
+      
+
       if (formData.cropQuantityKg && !isNaN(parseFloat(formData.cropQuantityKg))) {
         payload.cropQuantityKg = parseFloat(formData.cropQuantityKg);
       }
 
-      // Only include optional fields if they have values
+      
+
       if (formData.qualityGrade) {
         payload.qualityGrade = formData.qualityGrade;
       }
@@ -197,7 +154,8 @@ const WarehouseAccessApplication = () => {
         payload.cropImageUrl = formData.cropImageUrl;
       }
 
-      // Include desired price per kg if provided
+      
+
       if (formData.desiredPricePerKg && !isNaN(parseFloat(formData.desiredPricePerKg))) {
         payload.desiredPricePerKg = parseFloat(formData.desiredPricePerKg);
       }
@@ -214,7 +172,8 @@ const WarehouseAccessApplication = () => {
         'Failed to submit application';
       toast.error(errorMessage);
 
-      // Log detailed error for debugging
+      
+
       if (error.response?.data) {
         console.error('Error details:', error.response.data);
       }
@@ -226,11 +185,10 @@ const WarehouseAccessApplication = () => {
   return (
     <div className="form-page">
       <Sidebar />
-
-      <div className="form-container">
-        <div className="form-card">
-          <h1>Apply for Warehouse Access</h1>
-          <p className="form-subtitle">Submit an application to access a warehouse for storing your crops</p>
+      <div className="form-layout-wrapper">
+        <DashboardHeader title="Apply for Warehouse Access" subtitle="Submit an application to access a warehouse for storing your crops" />
+        <div className="form-container">
+          <div className="form-card">
 
           <form onSubmit={handleSubmit} className="form">
             <div className="form-group">
@@ -243,12 +201,19 @@ const WarehouseAccessApplication = () => {
                 required
               >
                 <option value="">Select a warehouse</option>
-                {warehouses.map((warehouse) => (
-                  <option key={warehouse.id} value={warehouse.id}>
-                    {warehouse.warehouseName} - Available: {warehouse.availableCapacityKg} KG
-                  </option>
-                ))}
+                {warehouses.length > 0 ? (
+                  warehouses.map((warehouse) => (
+                    <option key={warehouse.id} value={warehouse.id}>
+                      {warehouse.warehouseName} - Available: {warehouse.availableCapacityKg} KG
+                    </option>
+                  ))
+                ) : (
+                  <option value="" disabled>No warehouses available</option>
+                )}
               </select>
+              <small style={{ color: '#666', fontSize: '12px', display: 'block', marginTop: '5px' }}>
+                Showing {warehouses.length} warehouse(s)
+              </small>
             </div>
 
             <div className="form-group">
@@ -374,17 +339,21 @@ const WarehouseAccessApplication = () => {
                 onChange={async (e) => {
                   const file = e.target.files[0];
                   if (file) {
-                    // Validate file size (max 5MB)
+                    
+
                     if (file.size > 5 * 1024 * 1024) {
                       toast.error('File size must be less than 5MB');
-                      e.target.value = ''; // Clear the input
+                      e.target.value = ''; 
+
                       return;
                     }
 
-                    // Validate file type
+                    
+
                     if (!file.type.startsWith('image/')) {
                       toast.error('File must be an image');
-                      e.target.value = ''; // Clear the input
+                      e.target.value = ''; 
+
                       return;
                     }
 
@@ -410,7 +379,8 @@ const WarehouseAccessApplication = () => {
                       setCropImage(null);
                       setCropImageUrl('');
                       setFormData({ ...formData, cropImageUrl: '' });
-                      e.target.value = ''; // Clear the input
+                      e.target.value = ''; 
+
                     } finally {
                       setUploadingImage(false);
                     }
@@ -466,6 +436,7 @@ const WarehouseAccessApplication = () => {
               </button>
             </div>
           </form>
+          </div>
         </div>
       </div>
     </div>

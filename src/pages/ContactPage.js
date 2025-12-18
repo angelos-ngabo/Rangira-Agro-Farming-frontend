@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useQuery } from 'react-query';
 import Navbar from '../components/layout/Navbar';
-import WarehouseMap from '../components/maps/WarehouseMap';
 import { dataService } from '../services/dataService';
+import toast from 'react-hot-toast';
 
 const ContactPage = () => {
   const [formData, setFormData] = useState({
@@ -12,16 +11,7 @@ const ContactPage = () => {
     subject: '',
     message: ''
   });
-
-  // Fetch warehouses for map display
-  const { data: warehousesData } = useQuery(
-    'warehouses-for-contact',
-    () => dataService.getWarehouses({ page: 0, size: 100, status: 'ACTIVE' }),
-    {
-      retry: false,
-      refetchOnWindowFocus: false
-    }
-  );
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -30,12 +20,19 @@ const ContactPage = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: Implement form submission
-    console.log('Form submitted:', formData);
-    alert('Thank you for your message! We will get back to you soon.');
-    setFormData({ name: '', email: '', subject: '', message: '' });
+    setLoading(true);
+    try {
+      await dataService.sendContactMessage(formData);
+      toast.success('Your message has been sent successfully! We will get back to you soon.');
+      setFormData({ name: '', email: '', subject: '', message: '' });
+    } catch (error) {
+      const message = error.response?.data?.message || error.message || 'Failed to send message';
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -43,7 +40,7 @@ const ContactPage = () => {
       <Navbar />
 
       <main className="main">
-        {/* Page Title */}
+        {}
         <div
           className="page-title dark-background"
           data-aos="fade"
@@ -61,10 +58,18 @@ const ContactPage = () => {
           </div>
         </div>
 
-        {/* Contact Section */}
+        {}
         <section id="contact" className="contact section">
-          <div className="mb-5" style={{ height: '400px', width: '100%' }}>
-            <WarehouseMap warehouses={warehousesData?.data?.content || []} />
+          <div className="mb-5" data-aos="fade-up" style={{ width: '100%' }}>
+            <iframe
+              style={{ border: 0, width: '100%', height: '400px' }}
+              src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d15950.02534956795!2d30.0618851!3d-1.9440727!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x19dca4258ed8e797%3A0xf3299d1650df5d0!2sKigali!5e0!3m2!1sen!2srw!4v1716300000000!5m2!1sen!2srw"
+              frameBorder="0"
+              allowFullScreen=""
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              title="Rangira Agro Farming Location"
+            ></iframe>
           </div>
 
           <div className="container" data-aos="fade">
@@ -151,10 +156,12 @@ const ContactPage = () => {
                     ></textarea>
                   </div>
                   <div className="my-3">
-                    {/* Loading and error messages can be added here */}
+                    {loading && <div className="loading">Sending...</div>}
                   </div>
                   <div className="text-center">
-                    <button type="submit">Send Message</button>
+                    <button type="submit" disabled={loading}>
+                      {loading ? 'Sending...' : 'Send Message'}
+                    </button>
                   </div>
                 </form>
               </div>

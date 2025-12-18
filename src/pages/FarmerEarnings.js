@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useAuth } from '../contexts/AuthContext';
 import { dataService } from '../services/dataService';
 import Sidebar from '../components/layout/Sidebar';
+import DashboardHeader from '../components/dashboard/DashboardHeader';
 
 import Button from '../components/common/Button';
 import { DollarSign, Wallet, TrendingUp, TrendingDown, Clock, CheckCircle, XCircle, X, ShieldCheck } from 'lucide-react';
@@ -24,7 +25,8 @@ const FarmerEarnings = () => {
   });
   const [otpCode, setOtpCode] = useState('');
 
-  // Fetch wallet
+  
+
   const { data: wallet, isLoading: walletLoading } = useQuery(
     ['wallet', user?.id],
     async () => {
@@ -33,14 +35,14 @@ const FarmerEarnings = () => {
         const response = await dataService.getWallet();
         return response.data || response;
       } catch (error) {
-        console.error('Error fetching wallet:', error);
         return null;
       }
     },
     { enabled: !!user?.id, refetchInterval: 30000 }
   );
 
-  // Fetch transactions (sales)
+  
+
   const { data: transactions, isLoading: transactionsLoading } = useQuery(
     ['sellerTransactions', user?.id],
     async () => {
@@ -49,14 +51,14 @@ const FarmerEarnings = () => {
         const response = await dataService.getSellerTransactions(user.id);
         return response.data || [];
       } catch (error) {
-        console.error('Error fetching transactions:', error);
         return [];
       }
     },
     { enabled: !!user?.id }
   );
 
-  // Fetch withdrawals
+  
+
   const { data: withdrawals } = useQuery(
     ['withdrawals', user?.id],
     async () => {
@@ -65,20 +67,21 @@ const FarmerEarnings = () => {
         const response = await dataService.getWithdrawals();
         return response.data || [];
       } catch (error) {
-        console.error('Error fetching withdrawals:', error);
         return [];
       }
     },
     { enabled: !!user?.id }
   );
 
-  // Calculate statistics
+  
+
   const paidTransactions = transactions?.filter(t => t.paymentStatus === 'PAID') || [];
   const totalEarned = wallet?.totalEarned || 0;
   const availableBalance = wallet?.balance || 0;
   const totalWithdrawn = wallet?.totalWithdrawn || 0;
 
-  // Calculate daily/monthly/yearly earnings
+  
+
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -96,7 +99,8 @@ const FarmerEarnings = () => {
     .filter(t => new Date(t.paymentDate || t.transactionDate) >= thisYear)
     .reduce((sum, t) => sum + parseFloat(t.netAmount || 0), 0);
 
-  // Request withdrawal mutation
+  
+
   const requestWithdrawalMutation = useMutation(
     (data) => dataService.requestWithdrawal(data),
     {
@@ -114,7 +118,8 @@ const FarmerEarnings = () => {
     }
   );
 
-  // Verify OTP mutation
+  
+
   const verifyOtpMutation = useMutation(
     ({ withdrawalId, otpCode }) => dataService.verifyWithdrawalOtp(withdrawalId, otpCode),
     {
@@ -172,7 +177,8 @@ const FarmerEarnings = () => {
     <div className="dashboard">
       <Sidebar />
       <div className="dashboard-container">
-        {/* Statistics Cards */}
+        <DashboardHeader />
+        {}
         <div className="stats-grid" style={{ marginBottom: '32px' }}>
           <div className="stat-card" style={{ background: 'linear-gradient(135deg, #2ea359 0%, #059669 100%)', color: 'white' }}>
             <div className="stat-icon" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
@@ -211,7 +217,7 @@ const FarmerEarnings = () => {
           </div>
         </div>
 
-        {/* Sales Statistics */}
+        {}
         <div className="stats-grid" style={{ marginBottom: '32px' }}>
           <div className="stat-card">
             <div className="stat-icon" style={{ backgroundColor: '#2ea35920' }}>

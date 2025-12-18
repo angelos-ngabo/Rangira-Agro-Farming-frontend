@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useNavigate } from 'react-router-dom';
 import { dataService } from '../services/dataService';
 import Sidebar from '../components/layout/Sidebar';
-
+import DashboardHeader from '../components/dashboard/DashboardHeader';
 import DataTable from '../components/tables/DataTable';
 import Button from '../components/common/Button';
 import { Plus, Pencil, Trash2, FileDown, User, Eye } from 'lucide-react';
@@ -17,14 +17,16 @@ const Users = () => {
   const [size] = useState(10);
   const queryClient = useQueryClient();
 
-  // Fetch all users for search
+  
+
   const { data: allUsersData } = useQuery(
     'users-all-for-search',
     () => dataService.getUsers({ page: 0, size: 10000, sort: 'firstName,asc' }),
     { staleTime: 30000 }
   );
 
-  // Fetch paginated users for display
+  
+
   const { data, isLoading, error } = useQuery(
     ['users', page, size],
     () => dataService.getUsers({ page, size, sort: 'firstName,asc' }),
@@ -33,8 +35,10 @@ const Users = () => {
     }
   );
 
-  // Use all users for search, paginated for display
-  // Handle both paginated (with content) and list (direct array) responses
+  
+
+  
+
   const usersForTable =
     allUsersData?.data?.content ||
     (Array.isArray(allUsersData?.data) ? allUsersData.data : []) ||
@@ -62,7 +66,8 @@ const Users = () => {
   };
 
   const handleExportPDF = () => {
-    const exportColumns = columns.filter(col => col.accessor !== 'actions'); // Exclude actions column
+    const exportColumns = columns.filter(col => col.accessor !== 'actions'); 
+
     const exportData = usersForTable;
     exportToPDF(exportData, exportColumns, 'Users Report', `users-report-${new Date().toISOString().split('T')[0]}.pdf`);
     toast.success('PDF report generated successfully!');
@@ -119,16 +124,6 @@ const Users = () => {
             }}
             className="btn-icon"
             title="Edit"
-            style={{
-              background: 'transparent',
-              border: '1px solid #ddd',
-              borderRadius: '4px',
-              padding: '6px 8px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
           >
             <Pencil size={16} />
           </button>
@@ -140,17 +135,7 @@ const Users = () => {
             className="btn-icon btn-danger"
             title="Delete"
             disabled={deleteMutation.isLoading}
-            style={{
-              background: 'transparent',
-              border: '1px solid #ef4444',
-              borderRadius: '4px',
-              padding: '6px 8px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#ef4444'
-            }}
+          >
           >
             <Trash2 size={16} />
           </button>
@@ -174,6 +159,7 @@ const Users = () => {
     <div className="page">
       <Sidebar />
       <div className="page-container">
+        <DashboardHeader />
         <div className="page-actions" style={{ marginBottom: '24px', display: 'flex', gap: '12px' }}>
           <Button
             icon={Plus}
@@ -196,12 +182,12 @@ const Users = () => {
           data={usersForTable}
           columns={columns}
           loading={isLoading}
-          pagination={true}
+          pagination={!!allUsersData?.data}
           pageSize={size}
           columnSearchable={true}
         />
 
-        {(data?.data?.totalPages || 0) > 1 && (
+        {!allUsersData?.data && (data?.data?.totalPages || 0) > 1 && (
           <div className="pagination-controls">
             <Button
               variant="secondary"

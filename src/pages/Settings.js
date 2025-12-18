@@ -4,6 +4,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import Sidebar from '../components/layout/Sidebar';
+import DashboardHeader from '../components/dashboard/DashboardHeader';
 import {
   Lock,
   User,
@@ -29,7 +30,8 @@ const Settings = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  // Fetch full user details to get preferences
+  
+
   const { data: fullUser, isLoading: userLoading } = useQuery(
     ['fullUser', user?.id],
     () => dataService.getUserById(user.id).then(res => res.data),
@@ -57,7 +59,8 @@ const Settings = () => {
       },
       onError: (error) => {
         toast.error(error.response?.data?.message || 'Failed to update notification preference');
-        setNotificationsEnabled(!notificationsEnabled); // Revert on error
+        setNotificationsEnabled(!notificationsEnabled); 
+
       }
     }
   );
@@ -71,7 +74,8 @@ const Settings = () => {
       },
       onError: (error) => {
         toast.error(error.response?.data?.message || 'Failed to update two-factor authentication preference');
-        setTwoFactorEnabled(!twoFactorEnabled); // Revert on error
+        setTwoFactorEnabled(!twoFactorEnabled); 
+
       }
     }
   );
@@ -131,12 +135,7 @@ const Settings = () => {
       <Sidebar />
       <div className="page-container">
         <div className="settings-container">
-          <div className="settings-header">
-            <div className="header-left">
-              <h1>Settings</h1>
-              <p>Manage your account preferences and security</p>
-            </div>
-          </div>
+          <DashboardHeader />
 
           <div className="settings-content">
             {settingsSections.map((section, sectionIndex) => (
@@ -242,7 +241,7 @@ const Settings = () => {
               </div>
             ))}
 
-            {/* Quick Actions */}
+            {}
             <div className="settings-section">
               <div className="settings-section-header">
                 <SettingsIcon size={20} className="settings-section-icon" />

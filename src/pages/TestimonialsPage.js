@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
+import NewsletterForm from '../components/common/NewsletterForm';
 import { getImage } from '../utils/imageUtils';
 import './TestimonialsPage.css';
 
@@ -10,7 +11,7 @@ const TestimonialsPage = () => {
             <Navbar />
 
             <main className="main">
-                {/* Page Title */}
+                {}
                 <div
                     className="page-title dark-background"
                     data-aos="fade"
@@ -30,13 +31,13 @@ const TestimonialsPage = () => {
                     </div>
                 </div>
 
-                {/* Testimonials Section */}
+                {}
                 <section className="testimonials-12 testimonials section" id="testimonials">
-                    {/* Section Title */}
+                    {}
                     <div className="container section-title" data-aos="fade-up">
                         <h2>TESTIMONIALS</h2>
                         <p>What Our Users Say</p>
-                    </div>{/* End Section Title */}
+                    </div>{}
 
                     <div className="testimonial-wrap">
                         <div className="container">
@@ -88,9 +89,9 @@ const TestimonialsPage = () => {
                             </div>
                         </div>
                     </div>
-                </section>{/* /Testimonials Section */}
+                </section>{}
 
-                {/* Call To Action Section */}
+                {}
                 <section id="call-to-action" className="call-to-action section light-background">
                     <div className="content">
                         <div className="container">
@@ -102,17 +103,7 @@ const TestimonialsPage = () => {
                                     </p>
                                 </div>
                                 <div className="col-lg-6">
-                                    <form action="" className="form-subscribe php-email-form">
-                                        <div className="form-group d-flex align-items-stretch">
-                                            <input type="email" name="email" className="form-control h-100" placeholder="Enter your e-mail" />
-                                            <input type="submit" className="btn btn-secondary px-4" value="Subscribe" />
-                                        </div>
-                                        <div className="loading">Loading</div>
-                                        <div className="error-message"></div>
-                                        <div className="sent-message">
-                                            Your subscription request has been sent. Thank you!
-                                        </div>
-                                    </form>
+                                    <NewsletterForm />
                                 </div>
                             </div>
                         </div>

@@ -5,6 +5,7 @@ import { dataService } from '../../services/dataService';
 import Sidebar from '../../components/layout/Sidebar';
 import Button from '../../components/common/Button';
 import NotificationBell from '../../components/dashboard/NotificationBell';
+import DashboardHeader from '../../components/dashboard/DashboardHeader';
 import { Warehouse, Package, FileText, CheckCircle, Clock, XCircle, Pencil, X, Lock, Plus, Eye, Leaf, Bell, AlertCircle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -17,7 +18,8 @@ const FarmerDashboard = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedApplication, setSelectedApplication] = useState(null);
 
-  // Fetch warehouse access applications for this farmer
+  
+
   const { data: myApplications, refetch: refetchApplications } = useQuery(
     ['myApplications', user?.id],
     async () => {
@@ -33,7 +35,8 @@ const FarmerDashboard = () => {
     { enabled: !!user?.id }
   );
 
-  // Fetch approved warehouses and their inventory
+  
+
   const approvedAccesses = myApplications?.filter(app =>
     app.status === 'APPROVED' || app.status === 'ACTIVE'
   ) || [];
@@ -57,7 +60,8 @@ const FarmerDashboard = () => {
     { enabled: !!user?.id }
   );
 
-  // Calculate total storage
+  
+
   const totalStorage = myInventory?.reduce((sum, item) =>
     sum + parseFloat(item.quantityKg || 0), 0
   ) || 0;
@@ -66,7 +70,8 @@ const FarmerDashboard = () => {
     sum + parseFloat(item.remainingQuantityKg || 0), 0
   ) || 0;
 
-  // Fetch inventory requests for notifications
+  
+
   const { data: myInventoryRequests } = useQuery(
     ['myInventoryRequests', user?.id],
     async () => {
@@ -82,7 +87,8 @@ const FarmerDashboard = () => {
     { enabled: !!user?.id, refetchInterval: 30000 }
   );
 
-  // Get requests with responses (APPROVED, REJECTED, COMPLETED) that farmer should be notified about
+  
+
   const requestsWithResponses = myInventoryRequests?.filter(req =>
     req.status !== 'PENDING' && req.storekeeperResponse
   ) || [];
@@ -91,19 +97,7 @@ const FarmerDashboard = () => {
     <div className="dashboard">
       <Sidebar />
       <div className="dashboard-container">
-        <div className="dashboard-header">
-          <div className="header-left">
-            <h1>Farmer Dashboard</h1>
-            <p>Welcome back, {user?.firstName}!</p>
-          </div>
-          <div className="header-right">
-            <NotificationBell />
-            <Link to="/warehouse-access/apply" className="btn-primary">
-              <Plus size={20} />
-              Apply for Access
-            </Link>
-          </div>
-        </div>
+        <DashboardHeader />
 
         <div className="stats-grid">
           <div className="stat-card">
@@ -150,7 +144,7 @@ const FarmerDashboard = () => {
           </Link>
         </div>
 
-        {/* Inventory Request Notifications Section */}
+        {}
         {
           requestsWithResponses.length > 0 && (
             <div className="dashboard-section" style={{ marginBottom: '32px', borderLeft: '4px solid #116530' }}>
@@ -328,7 +322,7 @@ const FarmerDashboard = () => {
         </div>
       </div>
 
-      {/* Edit Modal */}
+      {}
       {
         showEditModal && selectedApplication && (
           <div className="modal-overlay" onClick={() => setShowEditModal(false)}>

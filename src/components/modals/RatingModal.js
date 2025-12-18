@@ -73,7 +73,7 @@ const RatingModal = ({ isOpen, onClose, transaction }) => {
             </p>
           </div>
 
-          {/* Star Rating */}
+          {}
           <div style={{ marginBottom: '24px' }}>
             <label style={{ display: 'block', marginBottom: '12px', fontWeight: '600', color: '#333' }}>
               Overall Rating <span style={{ color: '#e74c3c' }}>*</span>
@@ -112,7 +112,7 @@ const RatingModal = ({ isOpen, onClose, transaction }) => {
             )}
           </div>
 
-          {/* Rating Type */}
+          {}
           <div style={{ marginBottom: '24px' }}>
             <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#333' }}>
               What are you rating?
@@ -135,7 +135,7 @@ const RatingModal = ({ isOpen, onClose, transaction }) => {
             </select>
           </div>
 
-          {/* Comment */}
+          {}
           <div style={{ marginBottom: '24px' }}>
             <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#333' }}>
               Additional Comments (Optional)
@@ -157,7 +157,7 @@ const RatingModal = ({ isOpen, onClose, transaction }) => {
             />
           </div>
 
-          {/* Transaction Details */}
+          {}
           <div style={{ 
             background: '#f8f9fa', 
             padding: '16px', 

@@ -4,6 +4,7 @@ import { useQueryClient } from 'react-query';
 import { useAuth } from '../../contexts/AuthContext';
 import { dataService } from '../../services/dataService';
 import Sidebar from '../../components/layout/Sidebar';
+import DashboardHeader from '../../components/dashboard/DashboardHeader';
 import { Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
 import './Form.css';
@@ -15,7 +16,6 @@ const AddInventory = () => {
   const [loading, setLoading] = useState(false);
   const [cropTypes, setCropTypes] = useState([]);
   const [warehouses, setWarehouses] = useState([]);
-  const [farmers, setFarmers] = useState([]);
 
   const [formData, setFormData] = useState({
     inventoryCode: '',
@@ -30,8 +30,10 @@ const AddInventory = () => {
   });
 
   useEffect(() => {
-    if (user?.userType !== 'STOREKEEPER') {
-      toast.error('Only storekeepers can add inventory');
+    
+
+    if (user?.userType !== 'FARMER') {
+      toast.error('Only farmers can create inventory');
       navigate('/dashboard');
     }
     fetchData();
@@ -39,34 +41,18 @@ const AddInventory = () => {
 
   const fetchData = async () => {
     try {
-      const [cropsResponse, warehousesResponse, farmersResponse] = await Promise.all([
+      const [cropsResponse, warehousesResponse] = await Promise.all([
         dataService.getCropTypes({ page: 0, size: 100 }),
-        fetchAssignedWarehouses(),
-        dataService.getUsers({ page: 0, size: 100, userType: 'FARMER' }),
+        dataService.getWarehouses({ page: 0, size: 100, status: 'ACTIVE' }),
       ]);
 
       setCropTypes(cropsResponse.data?.content || []);
-      setWarehouses(warehousesResponse);
-      setFarmers(farmersResponse.data?.content || []);
+      
+
+      const warehouses = warehousesResponse.data?.content || warehousesResponse.data || [];
+      setWarehouses(warehouses);
     } catch (error) {
       console.error('Error fetching data:', error);
-    }
-  };
-
-  const fetchAssignedWarehouses = async () => {
-    try {
-      const accessResponse = await dataService.getWarehouseAccesses({ 
-        userId: user.id, 
-        isActive: true 
-      });
-      const warehouseIds = accessResponse.data?.map(a => a.warehouse?.id).filter(Boolean) || [];
-      const warehousesData = await Promise.all(
-        warehouseIds.map(id => dataService.getWarehouseById(id))
-      );
-      return warehousesData.map(w => w.data).filter(Boolean);
-    } catch (error) {
-      console.error('Error fetching assigned warehouses:', error);
-      return [];
     }
   };
 
@@ -80,7 +66,8 @@ const AddInventory = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Check warehouse capacity
+    
+
     const selectedWarehouse = warehouses.find(w => w.id === parseInt(formData.warehouseId));
     if (selectedWarehouse && parseFloat(formData.quantityKg) > selectedWarehouse.availableCapacityKg) {
       toast.error('Quantity exceeds available warehouse capacity');
@@ -89,27 +76,30 @@ const AddInventory = () => {
 
     setLoading(true);
     try {
+      
+
       await dataService.createInventory({
         ...formData,
         cropTypeId: parseInt(formData.cropTypeId),
         warehouseId: parseInt(formData.warehouseId),
-        farmerId: parseInt(formData.farmerId),
-        storekeeperId: user.id,
+        farmerId: user.id, 
+
         quantityKg: parseFloat(formData.quantityKg),
         remainingQuantityKg: parseFloat(formData.quantityKg),
         expectedWithdrawalDate: formData.expectedWithdrawalDate || null,
       });
-      toast.success('Crop added to warehouse successfully!');
+      toast.success('Inventory created successfully!');
+
       
-      // Invalidate all inventory-related queries to refresh data
+
       queryClient.invalidateQueries('inventories');
       queryClient.invalidateQueries('availableItems');
       queryClient.invalidateQueries('inventories-all-for-search');
       queryClient.invalidateQueries(['inventories']);
       queryClient.invalidateQueries(['warehouseInventory']);
       queryClient.invalidateQueries(['myInventory']);
-      
-      navigate('/storekeeper/dashboard');
+
+      navigate('/farmer/dashboard');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to add inventory');
     } finally {
@@ -120,11 +110,11 @@ const AddInventory = () => {
   return (
     <div className="form-page">
       <Sidebar />
-      <div className="form-container">
-        <div className="form-card">
-          <h1>Add Crop to Warehouse</h1>
-          <p className="form-subtitle">Insert crops into your assigned warehouse</p>
-          
+      <div className="form-layout-wrapper">
+        <DashboardHeader title="Add Crop to Warehouse" subtitle="Insert crops into your assigned warehouse" />
+        <div className="form-container">
+          <div className="form-card">
+
           <form onSubmit={handleSubmit} className="form">
             <div className="form-row">
               <div className="form-group">
@@ -178,23 +168,7 @@ const AddInventory = () => {
                 </select>
               </div>
 
-              <div className="form-group">
-                <label htmlFor="farmerId">Farmer *</label>
-                <select
-                  id="farmerId"
-                  name="farmerId"
-                  value={formData.farmerId}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="">Select Farmer</option>
-                  {farmers.map((farmer) => (
-                    <option key={farmer.id} value={farmer.id}>
-                      {farmer.firstName} {farmer.lastName} ({farmer.userCode})
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {}
             </div>
 
             <div className="form-row">
@@ -276,6 +250,7 @@ const AddInventory = () => {
               </button>
             </div>
           </form>
+          </div>
         </div>
       </div>
     </div>

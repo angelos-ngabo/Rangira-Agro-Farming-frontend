@@ -19,7 +19,8 @@ const Payment = () => {
   const [paymentReference, setPaymentReference] = useState('');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-  // Card payment fields
+  
+
   const [cardNumber, setCardNumber] = useState('');
   const [cardholderName, setCardholderName] = useState('');
   const [cvc, setCvc] = useState('');
@@ -37,7 +38,6 @@ const Payment = () => {
         const response = await dataService.getTransactionById(transactionId);
         return response.data || response;
       } catch (error) {
-        console.error('Error fetching transaction:', error);
         throw error;
       }
     },
@@ -55,8 +55,20 @@ const Payment = () => {
         navigate('/receipts');
       },
       onError: (error) => {
-        const errorMessage = error.response?.data?.message || error.message || 'Failed to process payment';
+        let errorMessage = 'Failed to process payment';
+        if (error.response?.data?.message) {
+          errorMessage = error.response.data.message;
+        } else if (error.response?.status === 409) {
+          errorMessage = 'This payment has already been processed. Please check your receipts.';
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
         toast.error(errorMessage);
+        
+
+        if (error.response?.status === 409) {
+          setTimeout(() => navigate('/receipts'), 2000);
+        }
       }
     }
   );
@@ -75,7 +87,8 @@ const Payment = () => {
       return;
     }
 
-    // Only require payment reference for MOBILE_MONEY and BANK_TRANSFER
+    
+
     if ((paymentMethod === 'MOBILE_MONEY' || paymentMethod === 'BANK_TRANSFER') && !paymentReference.trim()) {
       toast.error('Please enter payment reference');
       return;
@@ -85,22 +98,17 @@ const Payment = () => {
   };
 
   const handleConfirmPayment = () => {
-    let paymentRef = null;
-
-    // Only set payment reference for MOBILE_MONEY and BANK_TRANSFER
-    if (paymentMethod === 'MOBILE_MONEY' || paymentMethod === 'BANK_TRANSFER') {
-      paymentRef = paymentReference.trim() || null;
+    if (!paymentReference.trim()) {
+      toast.error('Please enter Mobile Money transaction reference');
+      return;
     }
-    // For CARD payments, don't use reference at all
 
     processPaymentMutation.mutate({
       transactionId: transaction.id,
       amount: transaction.totalAmount,
-      paymentMethod: paymentMethod,
-      paymentReference: paymentRef,
-      notes: paymentMethod === 'CARD'
-        ? `Card payment - ${cardholderName}, Billing: ${billingAddress}, ${billingCity} ${billingPostalCode}`
-        : `Payment for transaction ${transaction.transactionCode}`
+      paymentMethod: 'MOBILE_MONEY',
+      paymentReference: paymentReference.trim(),
+      notes: `Mobile Money payment for transaction ${transaction.transactionCode}`
     });
     setShowConfirmModal(false);
   };
@@ -143,7 +151,6 @@ const Payment = () => {
         toast.error('Please allow popups to view receipt');
       }
     } catch (error) {
-      console.error('Error viewing receipt:', error);
       toast.error('Failed to view receipt');
     }
   };
@@ -162,7 +169,6 @@ const Payment = () => {
       window.URL.revokeObjectURL(url);
       toast.success('Receipt downloaded successfully!');
     } catch (error) {
-      console.error('Error downloading receipt:', error);
       toast.error('Failed to download receipt');
     }
   };
@@ -211,7 +217,7 @@ const Payment = () => {
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px', marginTop: '24px' }}>
-          {/* Transaction Summary */}
+          {}
           <div className="payment-summary-card">
             <h2 style={{ marginBottom: '20px', color: '#116530' }}>Transaction Summary</h2>
 
@@ -264,174 +270,28 @@ const Payment = () => {
             </div>
           </div>
 
-          {/* Payment Form */}
+          {}
           <div className="payment-form-card">
             <h2 style={{ marginBottom: '20px', color: '#116530' }}>Payment Details</h2>
 
             <form onSubmit={handleSubmitPayment}>
               <div className="form-group" style={{ marginBottom: '20px' }}>
-                <label htmlFor="paymentMethod">Payment Method *</label>
-                <select
-                  id="paymentMethod"
-                  value={paymentMethod}
-                  onChange={(e) => setPaymentMethod(e.target.value)}
+                <label htmlFor="paymentReference">
+                  <strong>Mobile Money Transaction Reference *</strong>
+                </label>
+                <input
+                  type="text"
+                  id="paymentReference"
+                  value={paymentReference}
+                  onChange={(e) => setPaymentReference(e.target.value)}
                   required
-                >
-                  <option value="CARD">Credit/Debit Card</option>
-                  <option value="MOBILE_MONEY">Mobile Money</option>
-                  <option value="BANK_TRANSFER">Bank Transfer</option>
-                </select>
+                  placeholder="Enter your Mobile Money transaction ID (e.g., MTN-123456789)"
+                  style={{ fontSize: '16px', padding: '12px' }}
+                />
+                <small className="form-hint" style={{ display: 'block', marginTop: '8px', color: '#666' }}>
+                  After making the Mobile Money payment, enter the transaction reference number you received
+                </small>
               </div>
-
-              {paymentMethod === 'CARD' && (
-                <>
-                  <div className="form-group" style={{ marginBottom: '20px' }}>
-                    <label htmlFor="cardNumber">Card Number *</label>
-                    <input
-                      type="text"
-                      id="cardNumber"
-                      value={cardNumber}
-                      onChange={(e) => {
-                        const value = e.target.value.replace(/\s/g, '').replace(/\D/g, '');
-                        const formatted = value.match(/.{1,4}/g)?.join(' ') || value;
-                        setCardNumber(formatted);
-                      }}
-                      maxLength={19}
-                      placeholder="1234 5678 9012 3456"
-                      required
-                    />
-                  </div>
-
-                  <div className="form-group" style={{ marginBottom: '20px' }}>
-                    <label htmlFor="cardholderName">Cardholder Name *</label>
-                    <input
-                      type="text"
-                      id="cardholderName"
-                      value={cardholderName}
-                      onChange={(e) => setCardholderName(e.target.value)}
-                      placeholder="John Doe"
-                      required
-                    />
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '12px', marginBottom: '20px' }}>
-                    <div className="form-group">
-                      <label htmlFor="expiryMonth">Expiry Month *</label>
-                      <select
-                        id="expiryMonth"
-                        value={expiryMonth}
-                        onChange={(e) => setExpiryMonth(e.target.value)}
-                        required
-                      >
-                        <option value="">MM</option>
-                        {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
-                          <option key={month} value={String(month).padStart(2, '0')}>
-                            {String(month).padStart(2, '0')}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="expiryYear">Expiry Year *</label>
-                      <select
-                        id="expiryYear"
-                        value={expiryYear}
-                        onChange={(e) => setExpiryYear(e.target.value)}
-                        required
-                      >
-                        <option value="">YYYY</option>
-                        {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() + i).map(year => (
-                          <option key={year} value={year}>{year}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="cvc">CVC *</label>
-                      <input
-                        type="text"
-                        id="cvc"
-                        value={cvc}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/\D/g, '');
-                          setCvc(value.slice(0, 4));
-                        }}
-                        maxLength={4}
-                        placeholder="123"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div style={{ marginBottom: '20px', padding: '16px', background: '#f9fafb', borderRadius: '8px' }}>
-                    <h3 style={{ fontSize: '16px', marginBottom: '12px', color: '#116530' }}>Billing Details</h3>
-                    <div className="form-group" style={{ marginBottom: '12px' }}>
-                      <label htmlFor="billingAddress">Billing Address *</label>
-                      <input
-                        type="text"
-                        id="billingAddress"
-                        value={billingAddress}
-                        onChange={(e) => setBillingAddress(e.target.value)}
-                        placeholder="Street address"
-                        required
-                      />
-                    </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '12px' }}>
-                      <div className="form-group">
-                        <label htmlFor="billingCity">City *</label>
-                        <input
-                          type="text"
-                          id="billingCity"
-                          value={billingCity}
-                          onChange={(e) => setBillingCity(e.target.value)}
-                          placeholder="City"
-                          required
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label htmlFor="billingPostalCode">Postal Code *</label>
-                        <input
-                          type="text"
-                          id="billingPostalCode"
-                          value={billingPostalCode}
-                          onChange={(e) => setBillingPostalCode(e.target.value)}
-                          placeholder="00000"
-                          required
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
-
-              {paymentMethod === 'MOBILE_MONEY' && (
-                <div className="form-group" style={{ marginBottom: '20px' }}>
-                  <label htmlFor="paymentReference">Mobile Money Reference/Transaction ID *</label>
-                  <input
-                    type="text"
-                    id="paymentReference"
-                    value={paymentReference}
-                    onChange={(e) => setPaymentReference(e.target.value)}
-                    required
-                    placeholder="Enter transaction ID"
-                  />
-                </div>
-              )}
-
-              {paymentMethod === 'BANK_TRANSFER' && (
-                <div className="form-group" style={{ marginBottom: '20px' }}>
-                  <label htmlFor="paymentReference">Bank Transfer Reference *</label>
-                  <input
-                    type="text"
-                    id="paymentReference"
-                    value={paymentReference}
-                    onChange={(e) => setPaymentReference(e.target.value)}
-                    required
-                    placeholder="Enter transfer reference"
-                  />
-                </div>
-              )}
 
               <div style={{
                 background: '#f9fafb',
@@ -472,7 +332,7 @@ const Payment = () => {
           </div>
         </div>
 
-        {/* Confirmation Modal */}
+        {}
         {showConfirmModal && (
           <div className="modal-overlay" onClick={() => setShowConfirmModal(false)}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
@@ -484,15 +344,11 @@ const Payment = () => {
                 <p style={{ marginBottom: '16px' }}>
                   Are you sure you want to proceed with this payment?
                 </p>
-                <div style={{ background: '#f9fafb', padding: '16px', borderRadius: '8px', marginBottom: '20px' }}>
+                <div className="confirm-payment-details" style={{ background: '#f9fafb', padding: '16px', borderRadius: '8px', marginBottom: '20px' }}>
                   <p><strong>Amount:</strong> RWF {transaction.totalAmount?.toLocaleString()}</p>
-                  <p><strong>Payment Method:</strong> {paymentMethod.replace('_', ' ')}</p>
-                  {/* Only show reference for MOBILE_MONEY and BANK_TRANSFER */}
-                  {(paymentMethod === 'MOBILE_MONEY' || paymentMethod === 'BANK_TRANSFER') && paymentReference && (
-                    <p><strong>Reference:</strong> {paymentReference}</p>
-                  )}
-                  {paymentMethod === 'CARD' && (
-                    <p><strong>Card:</strong> **** **** **** {cardNumber.replace(/\s/g, '').slice(-4)}</p>
+                  <p><strong>Payment Method:</strong> Mobile Money</p>
+                  {paymentReference && (
+                    <p><strong>Transaction Reference:</strong> {paymentReference}</p>
                   )}
                 </div>
                 <div className="modal-actions">

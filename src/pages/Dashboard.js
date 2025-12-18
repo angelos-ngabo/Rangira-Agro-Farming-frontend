@@ -7,7 +7,8 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Redirect to role-specific dashboard
+    
+
     if (user?.userType === 'ADMIN') {
       navigate('/admin/dashboard', { replace: true });
     } else if (user?.userType === 'BUYER') {
@@ -19,7 +20,8 @@ const Dashboard = () => {
     }
   }, [user, navigate]);
 
-  return null; // This component just redirects
+  return null; 
+
 };
 
 export default Dashboard;

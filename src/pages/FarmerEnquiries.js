@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useAuth } from '../contexts/AuthContext';
 import { dataService } from '../services/dataService';
 import Sidebar from '../components/layout/Sidebar';
+import DashboardHeader from '../components/dashboard/DashboardHeader';
 
 import Button from '../components/common/Button';
 import { MessageSquare, CheckCircle, XCircle, DollarSign, Package, X } from 'lucide-react';
@@ -25,7 +26,6 @@ const FarmerEnquiries = () => {
         const response = await dataService.getFarmerEnquiries();
         return response.data || [];
       } catch (error) {
-        console.error('Error fetching enquiries:', error);
         return [];
       }
     },
@@ -86,6 +86,7 @@ const FarmerEnquiries = () => {
     <div className="dashboard">
       <Sidebar />
       <div className="dashboard-container">
+        <DashboardHeader />
         <div className="enquiries-sections">
           {pendingEnquiries.length > 0 && (
             <div className="enquiry-section">
