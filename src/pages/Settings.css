@@ -1,0 +1,262 @@
+.settings-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.settings-header {
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.settings-header-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.settings-header-icon {
+  color: #116530;
+}
+
+.settings-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 4px 0;
+}
+
+.settings-subtitle {
+  font-size: 16px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.settings-content {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.settings-section {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.settings-section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.settings-section-icon {
+  color: #116530;
+}
+
+.settings-section-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.settings-items {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.settings-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.settings-item:hover {
+  background: #f9fafb;
+  border-color: #116530;
+  transform: translateX(4px);
+}
+
+.settings-item-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.settings-item-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.settings-item-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.settings-item-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 4px 0;
+}
+
+.settings-item-description {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.settings-item-arrow {
+  color: #9ca3af;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.settings-item:hover .settings-item-arrow {
+  transform: translateX(4px);
+  color: #116530;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 52px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #cbd5e1;
+  transition: 0.3s;
+  border-radius: 28px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background-color: #2ea359;
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+  transform: translateX(24px);
+}
+
+.toggle-switch input:disabled + .toggle-slider {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .settings-container {
+    padding: 16px;
+  }
+
+  .settings-title {
+    font-size: 24px;
+  }
+
+  .settings-section {
+    padding: 16px;
+  }
+}
+
+/* Dark Mode Styles */
+.dark-mode .settings-container {
+  background: #1a1a1a;
+}
+
+.dark-mode .settings-header {
+  border-bottom-color: #404040;
+}
+
+.dark-mode .settings-title {
+  color: #ffffff;
+}
+
+.dark-mode .settings-subtitle {
+  color: #b0b0b0;
+}
+
+.dark-mode .settings-section {
+  background: #2d2d2d;
+  border-color: #404040;
+}
+
+.dark-mode .settings-section-header {
+  border-bottom-color: #404040;
+}
+
+.dark-mode .settings-section-title {
+  color: #ffffff;
+}
+
+.dark-mode .settings-item {
+  background: #3a3a3a;
+  border-color: #404040;
+}
+
+.dark-mode .settings-item:hover {
+  background: #404040;
+  border-color: #116530;
+}
+
+.dark-mode .settings-item-label {
+  color: #ffffff;
+}
+
+.dark-mode .settings-item-description {
+  color: #b0b0b0;
+}
+
+.dark-mode .settings-item-arrow {
+  color: #888;
+}
+
+.dark-mode .settings-item:hover .settings-item-arrow {
+  color: #116530;
+}
+

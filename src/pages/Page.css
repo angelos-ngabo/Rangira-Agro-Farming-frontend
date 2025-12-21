@@ -1,0 +1,444 @@
+/* Xofram Template Style for All Pages */
+
+.page {
+  min-height: 100vh;
+  font-family: 'Poppins', sans-serif;
+  position: relative;
+  background-color: #f5f5f5;
+  transition: background-color 0.3s ease;
+}
+
+.dark-mode .page {
+  background-color: #1a1a1a;
+  color: #ffffff;
+}
+
+.page-container {
+  width: calc(100% - 260px);
+  margin-left: 260px;
+  padding: 32px 20px;
+  padding-top: 32px;
+  /* Removed TopBar padding */
+  max-width: none;
+  position: relative;
+  z-index: 1;
+}
+
+.page-header {
+  position: fixed;
+  top: 0;
+  left: 260px;
+  right: 0;
+  width: calc(100% - 260px);
+  min-width: calc(100% - 260px);
+  max-width: calc(100% - 260px);
+  background: linear-gradient(135deg, #116530 0%, #c5d512 100%);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  padding: 20px 32px;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  z-index: 1001;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin: 0;
+  border: none;
+  outline: none;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.page-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.page-header h1 {
+  font-size: 40px;
+  font-weight: bold;
+  color: #ffffff;
+  text-transform: uppercase;
+}
+
+.btn-primary {
+  background-color: #116530;
+  color: #ffffff;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: none;
+  text-transform: uppercase;
+  font-size: 16px;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-primary:hover {
+  background-color: #101010;
+  color: #ffffff;
+  transform: translateY(-2px);
+}
+
+.btn-danger {
+  background-color: #ef4444;
+  color: #ffffff;
+  padding: 6px 12px;
+  border-radius: 5px;
+  font-size: 12px;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+
+.btn-danger:hover {
+  background-color: #dc2626;
+}
+
+.badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-block;
+  text-transform: uppercase;
+}
+
+.badge-farmer {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.badge-buyer {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.badge-storekeeper {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.badge-admin {
+  background-color: #fce7f3;
+  color: #9f1239;
+}
+
+.badge-active {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.badge-suspended {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.badge-inactive {
+  background-color: #f3f4f6;
+  color: #4b5563;
+}
+
+.btn-edit {
+  background-color: #3b82f6;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn-edit:hover {
+  background-color: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-top: 24px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.pagination-btn {
+  padding: 8px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #262626;
+  font-family: 'Poppins', sans-serif;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background-color: #116530;
+  color: #ffffff;
+  border-color: #116530;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Table Styles - Xofram Style */
+.data-table {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 5px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.data-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th {
+  background-color: #164006;
+  color: #ffffff;
+  padding: 12px;
+  text-align: left;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 14px;
+}
+
+.data-table td {
+  padding: 12px;
+  border-bottom: 1px solid #e0e0e0;
+  color: #262626;
+  font-size: 14px;
+}
+
+.data-table tr:hover {
+  background-color: #f9f9f9;
+}
+
+.data-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Form Styles - Xofram Style */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #116530;
+  font-size: 14px;
+  text-transform: uppercase;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 5px;
+  font-size: 16px;
+  font-family: 'Poppins', sans-serif;
+  transition: border-color 0.3s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #116530;
+}
+
+/* Card Styles - Xofram Style */
+.card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 5px;
+  padding: 24px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.card-header {
+  font-size: 22px;
+  font-weight: bold;
+  color: #116530;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+}
+
+/* Button Styles - Xofram Style */
+.btn {
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: none;
+  text-transform: uppercase;
+  font-size: 16px;
+  text-decoration: none;
+  display: inline-block;
+  font-family: 'Poppins', sans-serif;
+}
+
+.btn-secondary {
+  background-color: #ffffff;
+  color: #116530;
+  border: 1px solid #116530;
+}
+
+.btn-secondary:hover {
+  background-color: #116530;
+  color: #ffffff;
+}
+
+.btn-icon {
+  padding: 6px 10px;
+  border: 1px solid #e0e0e0;
+  background: #ffffff;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #116530;
+}
+
+.btn-icon:hover {
+  background-color: #116530;
+  color: #ffffff;
+  border-color: #116530;
+}
+
+.btn-icon.btn-danger {
+  background-color: #ffffff;
+  color: #ef4444;
+  border-color: #ef4444;
+}
+
+.btn-icon.btn-danger:hover {
+  background-color: #ef4444;
+  color: #ffffff;
+  border-color: #ef4444;
+}
+
+.btn-icon:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Dark Mode Styles */
+.dark-mode .page-container {
+  background-color: #1a1a1a;
+  color: #ffffff;
+}
+
+.dark-mode .page-header {
+  background: linear-gradient(135deg, #2d2d2d 0%, #3a3a3a 100%);
+}
+
+.dark-mode .card,
+.dark-mode .data-table,
+.dark-mode .pagination-controls {
+  background: #2d2d2d;
+  border-color: #404040;
+  color: #ffffff;
+}
+
+.dark-mode .data-table th {
+  background-color: #3a3a3a;
+  color: #ffffff;
+}
+
+.dark-mode .data-table td {
+  border-bottom-color: #404040;
+  color: #b0b0b0;
+}
+
+.dark-mode .data-table tr:hover {
+  background-color: #3a3a3a;
+}
+
+.dark-mode .card-header,
+.dark-mode .form-group label {
+  color: #ffffff;
+}
+
+.dark-mode .form-group input,
+.dark-mode .form-group select,
+.dark-mode .form-group textarea {
+  background-color: #3a3a3a;
+  border-color: #404040;
+  color: #ffffff;
+}
+
+.dark-mode .form-group input:focus,
+.dark-mode .form-group select:focus,
+.dark-mode .form-group textarea:focus {
+  border-color: #116530;
+}
+
+.dark-mode .btn-secondary {
+  background-color: #3a3a3a;
+  color: #ffffff;
+  border-color: #404040;
+}
+
+.dark-mode .btn-icon {
+  background-color: #3a3a3a;
+  border-color: #404040;
+  color: #ffffff;
+}
+
+.dark-mode .pagination-btn {
+  background: #2d2d2d;
+  border-color: #404040;
+  color: #ffffff;
+}
+
+.dark-mode .pagination-btn:hover:not(:disabled) {
+  background-color: #116530;
+  color: #ffffff;
+}
+
+.dark-mode .page-header {
+  background: linear-gradient(135deg, #2d2d2d 0%, #3a3a3a 100%);
+}
+
+.dark-mode .page-header h1 {
+  color: #ffffff;
+}
+
+.dark-mode .page-actions {
+  color: #ffffff;
+}

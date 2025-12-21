@@ -1,0 +1,26 @@
+.dashboard-footer {
+  background: transparent;
+  text-align: center;
+  padding: 20px 0;
+  margin-top: auto;
+}
+
+.dashboard-footer p {
+  font-size: 13px;
+  margin: 0;
+  color: #666;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+/* Dark Mode Styles */
+.dark-mode .dashboard-footer {
+  background: transparent;
+}
+
+.dark-mode .dashboard-footer p {
+  color: #b0b0b0;
+  font-weight: 600;
+  opacity: 1;
+}
+

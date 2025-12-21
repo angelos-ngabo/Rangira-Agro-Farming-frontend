@@ -1,0 +1,35 @@
+.backend-status-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: #fee2e2;
+  border-bottom: 2px solid #ef4444;
+  color: #991b1b;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 9999;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.backend-status-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.backend-status-content strong {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.backend-status-content span {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+
+
+
