@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8081/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -11,6 +11,11 @@ const api = axios.create({
 
 
 
+/**
+ * Request Interceptor
+ * Automatically attaches the JWT 'Bearer' token to the Authorization header
+ * of every outgoing HTTP request if a token exists in localStorage.
+ */
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -26,6 +31,11 @@ api.interceptors.request.use(
 
 
 
+/**
+ * Response Interceptor
+ * Handles global API response errors, such as network failures and unauthorized access.
+ * Automatically logs out the user and redirects to the login page upon a 401 response.
+ */
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -34,7 +44,7 @@ api.interceptors.response.use(
     if (!error.response) {
       
 
-      console.warn('Network error: Backend may not be running. Check http://localhost:8080');
+      console.warn(`Network error: Backend may not be running. Check ${process.env.REACT_APP_BACKEND_URL ?? 'http://localhost:8081'}`);
       
 
       return Promise.reject(error);

@@ -358,7 +358,7 @@ const EditWarehouseAccess = () => {
               {cropImageUrl && (
                 <div style={{ marginTop: '10px' }}>
                   <img
-                    src={cropImageUrl.startsWith('http') ? cropImageUrl : `http://localhost:8080${cropImageUrl}`}
+                    src={cropImageUrl.startsWith('http') ? cropImageUrl : `${process.env.REACT_APP_BACKEND_URL ?? 'http://localhost:8081'}${cropImageUrl}`}
                     alt="Crop preview"
                     style={{ maxWidth: '200px', maxHeight: '200px', borderRadius: '8px', border: '1px solid #ddd' }}
                   />

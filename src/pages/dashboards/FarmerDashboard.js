@@ -271,7 +271,7 @@ const FarmerDashboard = () => {
                           {app.cropImageUrl && (
                             <div className="crop-image-container">
                               <img
-                                src={app.cropImageUrl.startsWith('http') ? app.cropImageUrl : `http://localhost:8080${app.cropImageUrl}`}
+                                src={app.cropImageUrl.startsWith('http') ? app.cropImageUrl : `${process.env.REACT_APP_BACKEND_URL ?? 'http://localhost:8081'}${app.cropImageUrl}`}
                                 alt="Crop"
                                 style={{ maxWidth: '150px', maxHeight: '150px', borderRadius: '8px', marginTop: '8px' }}
                               />

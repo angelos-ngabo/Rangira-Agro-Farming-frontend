@@ -7,7 +7,9 @@ import Sidebar from '../components/layout/Sidebar';
 import DashboardHeader from '../components/dashboard/DashboardHeader';
 import DataTable from '../components/tables/DataTable';
 import Button from '../components/common/Button';
-import { Plus, FileDown, Search, MessageSquare, X, CreditCard, Leaf, Filter } from 'lucide-react';
+import LoadingSpinner from '../components/common/LoadingSpinner';
+import EmptyState from '../components/common/EmptyState';
+import { Plus, FileDown, Search, MessageSquare, X, CreditCard, Leaf, Filter, PackageOpen } from 'lucide-react';
 import { exportToPDF } from '../utils/pdfExport';
 import toast from 'react-hot-toast';
 import './Page.css';
@@ -313,10 +315,10 @@ const Inventory = () => {
           const imageSrc = imageUrl.startsWith('http') 
             ? imageUrl 
             : imageUrl.startsWith('/api/')
-              ? `http://localhost:8080${imageUrl}`
+              ? `${process.env.REACT_APP_BACKEND_URL ?? 'http://localhost:8081'}${imageUrl}`
               : imageUrl.startsWith('/')
-                ? `http://localhost:8080/api/files/crop-types/${imageUrl}`
-                : `http://localhost:8080/api/files/crop-types/${imageUrl}`;
+                ? `${process.env.REACT_APP_API_URL ?? 'http://localhost:8081/api'}/files/crop-types/${imageUrl}`
+                : `${process.env.REACT_APP_API_URL ?? 'http://localhost:8081/api'}/files/crop-types/${imageUrl}`;
           return (
             <img
               src={imageSrc}
@@ -396,15 +398,15 @@ const Inventory = () => {
 
           <div className="items-grid">
             {itemsLoading ? (
-              <p>Loading available items...</p>
+              <LoadingSpinner message="Loading available crops..." />
             ) : filteredItems.length > 0 ? (
               filteredItems.map((item) => (
                 <div key={item.id} className="item-card">
                   {(item.cropImageUrl || item.cropType?.imageUrl) && (
                     <img
                       src={item.cropImageUrl
-                        ? (item.cropImageUrl.startsWith('http') ? item.cropImageUrl : `http://localhost:8080${item.cropImageUrl}`)
-                        : (item.cropType?.imageUrl?.startsWith('http') ? item.cropType.imageUrl : `http://localhost:8080${item.cropType.imageUrl}`)
+                        ? (item.cropImageUrl.startsWith('http') ? item.cropImageUrl : `${process.env.REACT_APP_BACKEND_URL ?? 'http://localhost:8081'}${item.cropImageUrl}`)
+                        : (item.cropType?.imageUrl?.startsWith('http') ? item.cropType.imageUrl : `${process.env.REACT_APP_BACKEND_URL ?? 'http://localhost:8081'}${item.cropType.imageUrl}`)
                       }
                       alt={item.cropType?.cropName || 'Crop'}
                       className="item-image"
@@ -487,7 +489,11 @@ const Inventory = () => {
                 </div>
               ))
             ) : (
-              <p>No items available for purchase at the moment.</p>
+              <EmptyState 
+                title="No Crops Available" 
+                description="There are currently no items available for purchase." 
+                icon={<PackageOpen size={48} />} 
+              />
             )}
           </div>
         </div>
@@ -617,7 +623,10 @@ const Inventory = () => {
       <div>
         <Sidebar />
         <div className="page-container">
-          <div className="error-message">Error loading inventory</div>
+          <EmptyState 
+            title="Error Loading Inventory" 
+            description="We encountered a problem fetching the inventory data. Please try again." 
+          />
         </div>
       </div>
     );

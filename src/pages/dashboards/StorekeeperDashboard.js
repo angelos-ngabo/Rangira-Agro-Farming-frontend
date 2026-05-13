@@ -475,7 +475,7 @@ const StorekeeperDashboard = () => {
                           <div>
                             {item.cropImageUrl && (
                               <img
-                                src={item.cropImageUrl.startsWith('http') ? item.cropImageUrl : `http://localhost:8080${item.cropImageUrl}`}
+                                src={item.cropImageUrl.startsWith('http') ? item.cropImageUrl : `${process.env.REACT_APP_BACKEND_URL ?? 'http://localhost:8081'}${item.cropImageUrl}`}
                                 alt={item.cropType?.cropName || 'Crop'}
                                 style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '8px', marginBottom: '8px' }}
                               />
@@ -780,7 +780,7 @@ const StorekeeperDashboard = () => {
                       <img
                         src={selectedApplication.cropImageUrl.startsWith('http')
                           ? selectedApplication.cropImageUrl
-                          : `http://localhost:8080${selectedApplication.cropImageUrl}`}
+                          : `${process.env.REACT_APP_BACKEND_URL ?? 'http://localhost:8081'}${selectedApplication.cropImageUrl}`}
                         alt="Crop"
                         style={{
                           maxWidth: '100%',

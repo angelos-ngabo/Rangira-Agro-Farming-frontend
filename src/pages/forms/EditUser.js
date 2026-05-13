@@ -131,7 +131,7 @@ const EditUser = () => {
   const fetchProvinces = async () => {
     try {
       const response = await dataService.getProvinces();
-      setProvinces(response.data.map(p => ({ id: p.id, name: p.name, code: p.code })));
+      setProvinces(response.data.map(p => ({ id: p, name: p })));
     } catch (error) {
       console.error('Error fetching provinces:', error);
       toast.error('Failed to load provinces');
@@ -149,121 +149,72 @@ const EditUser = () => {
 
   useEffect(() => {
     if (selectedProvince) {
-      const fetchDistricts = async () => {
-        try {
-          const response = await dataService.getChildLocations(selectedProvince);
-          setDistricts(response.data.map(d => ({ id: d.id, name: d.name, code: d.code })));
-        } catch (error) {
-          console.error('Error fetching districts:', error);
-          toast.error('Failed to load districts');
-          setDistricts([]);
-        }
-      };
-      fetchDistricts();
-      if (!formData.locationId) {
-        setSelectedDistrict('');
-        setSelectedSector('');
-        setSelectedCell('');
-        setSelectedVillage('');
-        setSectors([]);
-        setCells([]);
-        setVillages([]);
-      }
+      dataService.getDistricts(selectedProvince)
+        .then((response) => setDistricts(response.data.map(d => ({ id: d, name: d })) || []))
+        .catch(console.error);
     } else {
       setDistricts([]);
-      setSelectedDistrict('');
-      setSelectedSector('');
-      setSelectedCell('');
-      setSelectedVillage('');
-      setSectors([]);
-      setCells([]);
-      setVillages([]);
     }
   }, [selectedProvince]);
 
   useEffect(() => {
-    if (selectedDistrict) {
-      const fetchSectors = async () => {
-        try {
-          const response = await dataService.getChildLocations(selectedDistrict);
-          setSectors(response.data.map(s => ({ id: s.id, name: s.name, code: s.code })));
-        } catch (error) {
-          console.error('Error fetching sectors:', error);
-          toast.error('Failed to load sectors');
-          setSectors([]);
-        }
-      };
-      fetchSectors();
-      if (!formData.locationId) {
-        setSelectedSector('');
-        setSelectedCell('');
-        setSelectedVillage('');
-        setCells([]);
-        setVillages([]);
-      }
+    if (selectedDistrict && selectedProvince) {
+      dataService.getSectors(selectedProvince, selectedDistrict)
+        .then((response) => setSectors(response.data.map(s => ({ id: s, name: s })) || []))
+        .catch(console.error);
     } else {
       setSectors([]);
-      setSelectedSector('');
-      setSelectedCell('');
-      setSelectedVillage('');
-      setCells([]);
-      setVillages([]);
     }
-  }, [selectedDistrict]);
+  }, [selectedDistrict, selectedProvince]);
 
   useEffect(() => {
-    if (selectedSector) {
-      const fetchCells = async () => {
-        try {
-          const response = await dataService.getChildLocations(selectedSector);
-          setCells(response.data.map(c => ({ id: c.id, name: c.name, code: c.code })));
-        } catch (error) {
-          console.error('Error fetching cells:', error);
-          toast.error('Failed to load cells');
-          setCells([]);
-        }
-      };
-      fetchCells();
-      if (!formData.locationId) {
-        setSelectedCell('');
-        setSelectedVillage('');
-        setVillages([]);
-      }
+    if (selectedSector && selectedDistrict && selectedProvince) {
+      dataService.getCells(selectedProvince, selectedDistrict, selectedSector)
+        .then((response) => setCells(response.data.map(c => ({ id: c, name: c })) || []))
+        .catch(console.error);
     } else {
       setCells([]);
-      setSelectedCell('');
-      setSelectedVillage('');
-      setVillages([]);
     }
-  }, [selectedSector]);
+  }, [selectedSector, selectedDistrict, selectedProvince]);
 
   useEffect(() => {
-    if (selectedCell) {
-      const fetchVillages = async () => {
-        try {
-          const response = await dataService.getChildLocations(selectedCell);
-          setVillages(response.data.map(v => ({ id: v.id, name: v.name, code: v.code })));
-        } catch (error) {
-          console.error('Error fetching villages:', error);
-          toast.error('Failed to load villages');
-          setVillages([]);
-        }
-      };
-      fetchVillages();
-      if (!formData.locationId) {
-        setSelectedVillage('');
-      }
+    if (selectedCell && selectedSector && selectedDistrict && selectedProvince) {
+      dataService.getVillages(selectedProvince, selectedDistrict, selectedSector, selectedCell)
+        .then((response) => {
+          if (response.data && Array.isArray(response.data)) {
+            setVillages(response.data.map(v => ({ id: v.id, name: v.village })));
+          } else {
+            setVillages([]);
+          }
+        })
+        .catch(console.error);
     } else {
       setVillages([]);
-      setSelectedVillage('');
     }
-  }, [selectedCell]);
+  }, [selectedCell, selectedSector, selectedDistrict, selectedProvince]);
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
+  };
+
+  const handleProvinceChange = (e) => {
+    setSelectedProvince(e.target.value);
+    setSelectedDistrict('');
+    setSelectedSector('');
+    setSelectedCell('');
+    setSelectedVillage('');
+    setFormData(prev => ({ ...prev, locationId: '' }));
+  };
+
+  const handleDistrictChange = (e) => {
+    setSelectedDistrict(e.target.value);
+    setSelectedSector('');
+    setSelectedCell('');
+    setSelectedVillage('');
+    setFormData(prev => ({ ...prev, locationId: '' }));
   };
 
   const handleSectorChange = (e) => {
@@ -513,7 +464,7 @@ const EditUser = () => {
                   <select
                     id="province"
                     value={selectedProvince}
-                    onChange={(e) => setSelectedProvince(e.target.value)}
+                    onChange={handleProvinceChange}
                     required
                   >
                     <option value="">Select Province</option>
@@ -530,7 +481,7 @@ const EditUser = () => {
                   <select
                     id="district"
                     value={selectedDistrict}
-                    onChange={(e) => setSelectedDistrict(e.target.value)}
+                    onChange={handleDistrictChange}
                     required
                     disabled={!selectedProvince}
                   >

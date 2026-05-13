@@ -150,7 +150,7 @@ const BrowseCrops = () => {
                       <img
                         src={imageUrl.startsWith('http') 
                           ? imageUrl 
-                          : `http://localhost:8080/api/files/crop-types/${imageUrl}`}
+                          : `${process.env.REACT_APP_API_URL ?? 'http://localhost:8081/api'}/files/crop-types/${imageUrl}`}
                         alt={item.cropType?.cropName || 'Crop'}
                         className="crop-type-image-browse"
                         onError={(e) => {

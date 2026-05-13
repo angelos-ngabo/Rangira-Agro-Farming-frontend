@@ -38,86 +38,22 @@ const Signup = () => {
   React.useEffect(() => {
     const fetchProvinces = async () => {
       try {
-        
-
-        const response = await dataService.getLocationsByType('Province');
-        setProvinces(response.data.map(p => ({ id: p.id, name: p.name, code: p.code })));
+        const response = await dataService.getProvinces();
+        setProvinces(response.data.map(p => ({ id: p, name: p })));
       } catch (error) {
         console.error('Error fetching provinces:', error);
-        
-
-        try {
-          const fallbackResponse = await dataService.getProvinces();
-          setProvinces(fallbackResponse.data.map(p => ({ id: p.id, name: p.name, code: p.code })));
-        } catch (fallbackError) {
-          toast.error('Failed to load provinces');
-        }
+        toast.error('Failed to load provinces');
       }
     };
-    
-    
-
-    const checkForLocationUpdates = () => {
-      try {
-        const updates = JSON.parse(sessionStorage.getItem('location-updates') || '[]');
-        if (updates.length > 0) {
-          
-
-          sessionStorage.removeItem('location-updates');
-          
-
-          fetchProvinces();
-        }
-      } catch (e) {
-        console.warn('Failed to check location updates:', e);
-      }
-    };
-    
     fetchProvinces();
-    checkForLocationUpdates();
-    
-    
-
-    const handleLocationUpdate = (event) => {
-      const { type, parentId } = event.detail || {};
-      
-
-      fetchProvinces();
-      
-
-      if (type === 'Province' || (selectedProvince && (!type || type === 'District'))) {
-        if (selectedProvince) {
-          
-
-          dataService.getChildLocations(selectedProvince).then(response => {
-            const districtsList = response.data
-              .filter(d => d.type === 'District')
-              .map(d => ({ id: d.id, name: d.name, code: d.code }));
-            setDistricts(districtsList);
-          }).catch(err => console.error('Error refreshing districts:', err));
-        }
-      }
-    };
-    window.addEventListener('location-updated', handleLocationUpdate);
-    
-    return () => {
-      window.removeEventListener('location-updated', handleLocationUpdate);
-    };
   }, []);
 
   React.useEffect(() => {
     if (selectedProvince) {
       const fetchDistricts = async () => {
         try {
-          
-
-          const response = await dataService.getChildLocations(selectedProvince);
-          
-
-          const districtsList = response.data
-            .filter(d => d.type === 'District')
-            .map(d => ({ id: d.id, name: d.name, code: d.code }));
-          setDistricts(districtsList);
+          const response = await dataService.getDistricts(selectedProvince);
+          setDistricts(response.data.map(d => ({ id: d, name: d })));
         } catch (error) {
           console.error('Error fetching districts:', error);
           toast.error('Failed to load districts');
@@ -133,22 +69,6 @@ const Signup = () => {
       setCells([]);
       setVillages([]);
       setFormData(prev => ({ ...prev, locationId: '' }));
-      
-      
-
-      const handleLocationUpdate = (event) => {
-        const { type, parentId } = event.detail || {};
-        
-
-        if (!type || type === 'District' || (type === 'Province' && parentId === selectedProvince)) {
-          fetchDistricts();
-        }
-      };
-      window.addEventListener('location-updated', handleLocationUpdate);
-      
-      return () => {
-        window.removeEventListener('location-updated', handleLocationUpdate);
-      };
     } else {
       setDistricts([]);
       setSelectedDistrict('');
@@ -162,18 +82,11 @@ const Signup = () => {
   }, [selectedProvince]);
 
   React.useEffect(() => {
-    if (selectedDistrict) {
+    if (selectedDistrict && selectedProvince) {
       const fetchSectors = async () => {
         try {
-          
-
-          const response = await dataService.getChildLocations(selectedDistrict);
-          
-
-          const sectorsList = response.data
-            .filter(s => s.type === 'Sector')
-            .map(s => ({ id: s.id, name: s.name, code: s.code }));
-          setSectors(sectorsList);
+          const response = await dataService.getSectors(selectedProvince, selectedDistrict);
+          setSectors(response.data.map(s => ({ id: s, name: s })));
         } catch (error) {
           console.error('Error fetching sectors:', error);
           toast.error('Failed to load sectors');
@@ -187,40 +100,6 @@ const Signup = () => {
       setCells([]);
       setVillages([]);
       setFormData(prev => ({ ...prev, locationId: '' }));
-      
-      
-
-      const checkForLocationUpdates = () => {
-        try {
-          const updates = JSON.parse(sessionStorage.getItem('location-updates') || '[]');
-          const relevantUpdate = updates.find(u => 
-            (u.type === 'Sector' && u.parentId === selectedDistrict) ||
-            (u.type === 'District' && u.locationId === selectedDistrict)
-          );
-          if (relevantUpdate) {
-            fetchSectors();
-          }
-        } catch (e) {
-          console.warn('Failed to check location updates:', e);
-        }
-      };
-      checkForLocationUpdates();
-      
-      
-
-      const handleLocationUpdate = (event) => {
-        const { type, parentId } = event.detail || {};
-        
-
-        if (!type || type === 'Sector' || (type === 'District' && parentId === selectedDistrict)) {
-          fetchSectors();
-        }
-      };
-      window.addEventListener('location-updated', handleLocationUpdate);
-      
-      return () => {
-        window.removeEventListener('location-updated', handleLocationUpdate);
-      };
     } else {
       setSectors([]);
       setSelectedSector('');
@@ -229,27 +108,16 @@ const Signup = () => {
       setCells([]);
       setVillages([]);
     }
-  }, [selectedDistrict]);
+  }, [selectedDistrict, selectedProvince]);
 
   React.useEffect(() => {
-    if (selectedSector) {
+    if (selectedSector && selectedDistrict && selectedProvince) {
       const fetchCells = async () => {
         try {
-          
-
-          const response = await dataService.getChildLocations(selectedSector);
+          const response = await dataService.getCells(selectedProvince, selectedDistrict, selectedSector);
           if (response.data && Array.isArray(response.data)) {
-            
-
-            const cellsList = response.data
-              .filter(c => c.type === 'Cell')
-              .map(c => ({ id: c.id, name: c.name, code: c.code }));
-            setCells(cellsList);
-            if (cellsList.length === 0) {
-              console.warn('No cells found for sector:', selectedSector);
-            }
+            setCells(response.data.map(c => ({ id: c, name: c })));
           } else {
-            console.warn('Invalid response format for cells:', response);
             setCells([]);
           }
         } catch (error) {
@@ -263,67 +131,22 @@ const Signup = () => {
       setSelectedVillage('');
       setVillages([]);
       setFormData(prev => ({ ...prev, locationId: '' }));
-      
-      
-
-      const checkForLocationUpdates = () => {
-        try {
-          const updates = JSON.parse(sessionStorage.getItem('location-updates') || '[]');
-          const relevantUpdate = updates.find(u => 
-            (u.type === 'Cell' && u.parentId === selectedSector) ||
-            (u.type === 'Sector' && u.locationId === selectedSector)
-          );
-          if (relevantUpdate) {
-            fetchCells();
-          }
-        } catch (e) {
-          console.warn('Failed to check location updates:', e);
-        }
-      };
-      checkForLocationUpdates();
-      
-      
-
-      const handleLocationUpdate = (event) => {
-        const { type, parentId } = event.detail || {};
-        
-
-        if (!type || type === 'Cell' || (type === 'Sector' && parentId === selectedSector)) {
-          fetchCells();
-        }
-      };
-      window.addEventListener('location-updated', handleLocationUpdate);
-      
-      return () => {
-        window.removeEventListener('location-updated', handleLocationUpdate);
-      };
     } else {
       setCells([]);
       setSelectedCell('');
       setSelectedVillage('');
       setVillages([]);
     }
-  }, [selectedSector]);
+  }, [selectedSector, selectedDistrict, selectedProvince]);
 
   React.useEffect(() => {
-    if (selectedCell) {
+    if (selectedCell && selectedSector && selectedDistrict && selectedProvince) {
       const fetchVillages = async () => {
         try {
-          
-
-          const response = await dataService.getChildLocations(selectedCell);
+          const response = await dataService.getVillages(selectedProvince, selectedDistrict, selectedSector, selectedCell);
           if (response.data && Array.isArray(response.data)) {
-            
-
-            const villagesList = response.data
-              .filter(v => v.type === 'Village')
-              .map(v => ({ id: v.id, name: v.name, code: v.code }));
-            setVillages(villagesList);
-            if (villagesList.length === 0) {
-              console.warn('No villages found for cell:', selectedCell);
-            }
+            setVillages(response.data.map(v => ({ id: v.id, name: v.village })));
           } else {
-            console.warn('Invalid response format for villages:', response);
             setVillages([]);
           }
         } catch (error) {
@@ -335,45 +158,11 @@ const Signup = () => {
       fetchVillages();
       setSelectedVillage('');
       setFormData(prev => ({ ...prev, locationId: '' }));
-      
-      
-
-      const checkForLocationUpdates = () => {
-        try {
-          const updates = JSON.parse(sessionStorage.getItem('location-updates') || '[]');
-          const relevantUpdate = updates.find(u => 
-            (u.type === 'Village' && u.parentId === selectedCell) ||
-            (u.type === 'Cell' && u.locationId === selectedCell)
-          );
-          if (relevantUpdate) {
-            fetchVillages();
-          }
-        } catch (e) {
-          console.warn('Failed to check location updates:', e);
-        }
-      };
-      checkForLocationUpdates();
-      
-      
-
-      const handleLocationUpdate = (event) => {
-        const { type, parentId } = event.detail || {};
-        
-
-        if (!type || type === 'Village' || (type === 'Cell' && parentId === selectedCell)) {
-          fetchVillages();
-        }
-      };
-      window.addEventListener('location-updated', handleLocationUpdate);
-      
-      return () => {
-        window.removeEventListener('location-updated', handleLocationUpdate);
-      };
     } else {
       setVillages([]);
       setSelectedVillage('');
     }
-  }, [selectedCell]);
+  }, [selectedCell, selectedSector, selectedDistrict, selectedProvince]);
 
   const handleChange = (e) => {
     setFormData({

@@ -37,7 +37,7 @@ const BackendStatus = () => {
       <AlertCircle size={20} />
       <div className="backend-status-content">
         <strong>Backend Not Available</strong>
-        <span>Make sure the Spring Boot server is running on http://localhost:8080</span>
+        <span>Make sure the Spring Boot server is running on {process.env.REACT_APP_BACKEND_URL ?? 'http://localhost:8081'}</span>
       </div>
     </div>
   );

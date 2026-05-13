@@ -200,8 +200,8 @@ const Profile = () => {
                 const imageSrc = pictureUrl?.startsWith('http')
                   ? pictureUrl
                   : pictureUrl?.startsWith('/api/')
-                    ? `http://localhost:8080${pictureUrl}`
-                    : `http://localhost:8080/api/files/profile-pictures/${pictureUrl}`;
+                    ? `${process.env.REACT_APP_BACKEND_URL ?? 'http://localhost:8081'}${pictureUrl}`
+                    : `${process.env.REACT_APP_API_URL ?? 'http://localhost:8081/api'}/files/profile-pictures/${pictureUrl}`;
                 return (
                   <img
                     src={imageSrc}

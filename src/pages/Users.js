@@ -8,6 +8,7 @@ import DataTable from '../components/tables/DataTable';
 import Button from '../components/common/Button';
 import { Plus, Pencil, Trash2, FileDown, User, Eye } from 'lucide-react';
 import toast from 'react-hot-toast';
+import EmptyState from '../components/common/EmptyState';
 import { exportToPDF } from '../utils/pdfExport';
 import './Page.css';
 
@@ -149,7 +150,10 @@ const Users = () => {
       <div>
         <Sidebar />
         <div className="page-container">
-          <div className="error-message">Error loading users</div>
+          <EmptyState 
+            title="Error Loading Users" 
+            description="We encountered a problem fetching the user data. Please try again." 
+          />
         </div>
       </div>
     );

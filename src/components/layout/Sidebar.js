@@ -17,7 +17,8 @@ import {
   User,
   Building2,
   Leaf,
-  ShoppingBag
+  ShoppingBag,
+  Activity
 } from 'lucide-react';
 import './Sidebar.css';
 import { getLogoUrl } from '../../utils/imageUtils';
@@ -53,6 +54,7 @@ const Sidebar = ({ className = '' }) => {
     { path: '/ratings', label: 'Ratings', icon: Star },
     { path: '/profile', label: 'Profile', icon: User },
     { path: '/settings', label: 'Settings', icon: Settings },
+    { path: '/SystemTesting', label: 'System Testing', icon: Activity },
   ];
 
   
@@ -66,6 +68,7 @@ const Sidebar = ({ className = '' }) => {
     { path: '/messages', label: 'Messages', icon: Mail },
     { path: '/profile', label: 'Profile', icon: User },
     { path: '/settings', label: 'Settings', icon: Settings },
+    { path: '/SystemTesting', label: 'System Testing', icon: Activity },
   ];
 
   
@@ -78,6 +81,7 @@ const Sidebar = ({ className = '' }) => {
     { path: '/messages', label: 'Messages', icon: Mail },
     { path: '/profile', label: 'Profile', icon: User },
     { path: '/settings', label: 'Settings', icon: Settings },
+    { path: '/SystemTesting', label: 'System Testing', icon: Activity },
   ];
 
   
@@ -90,6 +94,7 @@ const Sidebar = ({ className = '' }) => {
     { path: '/messages', label: 'Messages', icon: Mail },
     { path: '/profile', label: 'Profile', icon: User },
     { path: '/settings', label: 'Settings', icon: Settings },
+    { path: '/SystemTesting', label: 'System Testing', icon: Activity },
   ];
 
   
@@ -149,8 +154,8 @@ const Sidebar = ({ className = '' }) => {
               const imageSrc = pictureUrl?.startsWith('http')
                 ? pictureUrl
                 : pictureUrl?.startsWith('/api/')
-                  ? `http://localhost:8080${pictureUrl}`
-                  : `http://localhost:8080/api/files/profile-pictures/${pictureUrl}`;
+                  ? `${process.env.REACT_APP_BACKEND_URL ?? 'http://localhost:8081'}${pictureUrl}`
+                  : `${process.env.REACT_APP_API_URL ?? 'http://localhost:8081/api'}/files/profile-pictures/${pictureUrl}`;
               return (
                 <img
                   src={imageSrc}

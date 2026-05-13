@@ -9,6 +9,7 @@ import DataTable from '../components/tables/DataTable';
 import Button from '../components/common/Button';
 import { Plus, Pencil, Trash2, FileDown, Building2, Eye } from 'lucide-react';
 import toast from 'react-hot-toast';
+import EmptyState from '../components/common/EmptyState';
 import { exportToPDF } from '../utils/pdfExport';
 import './Page.css';
 
@@ -198,7 +199,6 @@ const Warehouses = () => {
             title="Delete Warehouse"
             disabled={deleteMutation.isLoading}
           >
-          >
             <Trash2 size={16} />
           </button>
         </div>
@@ -211,7 +211,10 @@ const Warehouses = () => {
       <div>
         <Sidebar />
         <div className="page-container">
-          <div className="error-message">Error loading warehouses</div>
+          <EmptyState 
+            title="Error Loading Warehouses" 
+            description="We encountered a problem fetching the warehouse data. Please try again." 
+          />
         </div>
       </div>
     );

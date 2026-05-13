@@ -65,7 +65,7 @@ const EditWarehouse = () => {
   const fetchProvinces = async () => {
     try {
       const response = await dataService.getProvinces();
-      setProvinces(response.data.map(p => ({ id: p.id, name: p.name, code: p.code })));
+      setProvinces(response.data.map(p => ({ id: p, name: p })));
     } catch (error) {
       console.error('Error fetching provinces:', error);
       toast.error('Failed to load provinces');
@@ -170,108 +170,72 @@ const EditWarehouse = () => {
 
   useEffect(() => {
     if (selectedProvince) {
-      dataService.getChildLocations(selectedProvince)
-        .then((response) => {
-          setDistricts(response.data.map(d => ({ id: d.id, name: d.name, code: d.code })) || []);
-          if (!selectedDistrict) {
-            setSelectedDistrict('');
-            setSelectedSector('');
-            setSectors([]);
-            setSelectedCell('');
-            setSelectedVillage('');
-            setCells([]);
-            setVillages([]);
-          }
-        })
-        .catch((error) => {
-          console.error('Error fetching districts:', error);
-        });
+      dataService.getDistricts(selectedProvince)
+        .then((response) => setDistricts(response.data.map(d => ({ id: d, name: d })) || []))
+        .catch(console.error);
     } else {
       setDistricts([]);
-      setSelectedDistrict('');
-      setSelectedSector('');
-      setSectors([]);
-      setSelectedCell('');
-      setSelectedVillage('');
-      setCells([]);
-      setVillages([]);
     }
   }, [selectedProvince]);
 
   useEffect(() => {
-    if (selectedDistrict) {
-      dataService.getChildLocations(selectedDistrict)
-        .then((response) => {
-          setSectors(response.data.map(s => ({ id: s.id, name: s.name, code: s.code })) || []);
-          if (!selectedSector) {
-            setSelectedSector('');
-            setSelectedCell('');
-            setSelectedVillage('');
-            setCells([]);
-            setVillages([]);
-            setFormData(prev => ({ ...prev, locationId: '' }));
-          }
-        })
-        .catch((error) => {
-          console.error('Error fetching sectors:', error);
-        });
+    if (selectedDistrict && selectedProvince) {
+      dataService.getSectors(selectedProvince, selectedDistrict)
+        .then((response) => setSectors(response.data.map(s => ({ id: s, name: s })) || []))
+        .catch(console.error);
     } else {
       setSectors([]);
-      setSelectedSector('');
-      setSelectedCell('');
-      setSelectedVillage('');
-      setCells([]);
-      setVillages([]);
     }
-  }, [selectedDistrict]);
+  }, [selectedDistrict, selectedProvince]);
 
   useEffect(() => {
-    if (selectedSector) {
-      dataService.getChildLocations(selectedSector)
+    if (selectedSector && selectedDistrict && selectedProvince) {
+      dataService.getCells(selectedProvince, selectedDistrict, selectedSector)
+        .then((response) => setCells(response.data.map(c => ({ id: c, name: c })) || []))
+        .catch(console.error);
+    } else {
+      setCells([]);
+    }
+  }, [selectedSector, selectedDistrict, selectedProvince]);
+
+  useEffect(() => {
+    if (selectedCell && selectedSector && selectedDistrict && selectedProvince) {
+      dataService.getVillages(selectedProvince, selectedDistrict, selectedSector, selectedCell)
         .then((response) => {
-          setCells(response.data.map(c => ({ id: c.id, name: c.name, code: c.code })) || []);
-          if (!selectedCell) {
-            setSelectedCell('');
-            setSelectedVillage('');
+          if (response.data && Array.isArray(response.data)) {
+            setVillages(response.data.map(v => ({ id: v.id, name: v.village })));
+          } else {
             setVillages([]);
-            setFormData(prev => ({ ...prev, locationId: '' }));
           }
         })
-        .catch((error) => {
-          console.error('Error fetching cells:', error);
-        });
-    } else {
-      setCells([]);
-      setSelectedCell('');
-      setSelectedVillage('');
-      setVillages([]);
-    }
-  }, [selectedSector]);
-
-  useEffect(() => {
-    if (selectedCell) {
-      dataService.getChildLocations(selectedCell)
-        .then((response) => {
-          setVillages(response.data.map(v => ({ id: v.id, name: v.name, code: v.code })) || []);
-          if (!selectedVillage) {
-            setSelectedVillage('');
-            setFormData(prev => ({ ...prev, locationId: '' }));
-          }
-        })
-        .catch((error) => {
-          console.error('Error fetching villages:', error);
-        });
+        .catch(console.error);
     } else {
       setVillages([]);
-      setSelectedVillage('');
     }
-  }, [selectedCell]);
+  }, [selectedCell, selectedSector, selectedDistrict, selectedProvince]);
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
+  };
+
+  const handleProvinceChange = (e) => {
+    setSelectedProvince(e.target.value);
+    setSelectedDistrict('');
+    setSelectedSector('');
+    setSelectedCell('');
+    setSelectedVillage('');
+    setFormData(prev => ({ ...prev, locationId: '' }));
+  };
+
+  const handleDistrictChange = (e) => {
+    setSelectedDistrict(e.target.value);
+    setSelectedSector('');
+    setSelectedCell('');
+    setSelectedVillage('');
+    setFormData(prev => ({ ...prev, locationId: '' }));
   };
 
   const handleSectorChange = (e) => {
@@ -524,7 +488,7 @@ const EditWarehouse = () => {
                   <select
                     id="province"
                     value={selectedProvince}
-                    onChange={(e) => setSelectedProvince(e.target.value)}
+                    onChange={handleProvinceChange}
                     required
                   >
                     <option value="">Select Province</option>
@@ -541,7 +505,7 @@ const EditWarehouse = () => {
                   <select
                     id="district"
                     value={selectedDistrict}
-                    onChange={(e) => setSelectedDistrict(e.target.value)}
+                    onChange={handleDistrictChange}
                     required
                     disabled={!selectedProvince}
                   >

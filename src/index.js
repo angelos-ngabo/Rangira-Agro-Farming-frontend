@@ -19,7 +19,7 @@ const queryClient = new QueryClient({
         
 
         if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
-          console.warn('Backend connection error. Make sure the backend is running on http://localhost:8080');
+          console.warn(`Backend connection error. Make sure the backend is running on ${process.env.REACT_APP_BACKEND_URL ?? 'http://localhost:8081'}`);
         }
       },
     },

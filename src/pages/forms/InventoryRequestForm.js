@@ -261,9 +261,9 @@ const InventoryRequestForm = () => {
       return url;
     }
     if (url.startsWith('/api/')) {
-      return `http://localhost:8080${url}`;
+      return `${process.env.REACT_APP_BACKEND_URL ?? 'http://localhost:8081'}${url}`;
     }
-    return `http://localhost:8080/api/files/${url}`;
+    return `${process.env.REACT_APP_API_URL ?? 'http://localhost:8081/api'}/files/${url}`;
   };
 
   return (

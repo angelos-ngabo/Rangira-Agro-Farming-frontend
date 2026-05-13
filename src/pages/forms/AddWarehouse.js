@@ -39,7 +39,7 @@ const AddWarehouse = () => {
     const fetchProvinces = async () => {
       try {
         const response = await dataService.getProvinces();
-        setProvinces(response.data.map(p => ({ id: p.id, name: p.name, code: p.code })));
+        setProvinces(response.data.map(p => ({ id: p, name: p })));
       } catch (error) {
         console.error('Error fetching provinces:', error);
         toast.error('Failed to load provinces');
@@ -52,8 +52,8 @@ const AddWarehouse = () => {
     if (selectedProvince) {
       const fetchDistricts = async () => {
         try {
-          const response = await dataService.getChildLocations(selectedProvince);
-          setDistricts(response.data.map(d => ({ id: d.id, name: d.name, code: d.code })));
+          const response = await dataService.getDistricts(selectedProvince);
+          setDistricts(response.data.map(d => ({ id: d, name: d })));
         } catch (error) {
           console.error('Error fetching districts:', error);
           toast.error('Failed to load districts');
@@ -76,11 +76,11 @@ const AddWarehouse = () => {
   }, [selectedProvince]);
 
   useEffect(() => {
-    if (selectedDistrict) {
+    if (selectedDistrict && selectedProvince) {
       const fetchSectors = async () => {
         try {
-          const response = await dataService.getChildLocations(selectedDistrict);
-          setSectors(response.data.map(s => ({ id: s.id, name: s.name, code: s.code })));
+          const response = await dataService.getSectors(selectedProvince, selectedDistrict);
+          setSectors(response.data.map(s => ({ id: s, name: s })));
         } catch (error) {
           console.error('Error fetching sectors:', error);
           toast.error('Failed to load sectors');
@@ -102,27 +102,17 @@ const AddWarehouse = () => {
       setCells([]);
       setVillages([]);
     }
-  }, [selectedDistrict]);
+  }, [selectedDistrict, selectedProvince]);
 
   useEffect(() => {
-    if (selectedSector) {
+    if (selectedSector && selectedDistrict && selectedProvince) {
       const fetchCells = async () => {
         try {
-          console.log('Fetching cells for sector ID:', selectedSector);
-          const response = await dataService.getChildLocations(selectedSector);
-          console.log('Cells API response:', response);
-          if (response && response.data && Array.isArray(response.data)) {
-            const cellsList = response.data.map(c => ({ id: c.id, name: c.name, code: c.code }));
-            console.log('Parsed cells list:', cellsList);
-            setCells(cellsList);
-            if (cellsList.length === 0) {
-              console.warn('No cells found for sector:', selectedSector);
-              toast.error('No cells found for this sector. Please ensure locations are seeded.');
-            }
+          const response = await dataService.getCells(selectedProvince, selectedDistrict, selectedSector);
+          if (response.data && Array.isArray(response.data)) {
+            setCells(response.data.map(c => ({ id: c, name: c })));
           } else {
-            console.warn('Invalid response format for cells:', response);
             setCells([]);
-            toast.error('Invalid response format when loading cells');
           }
         } catch (error) {
           console.error('Error fetching cells:', error);
@@ -142,27 +132,17 @@ const AddWarehouse = () => {
       setSelectedVillage('');
       setVillages([]);
     }
-  }, [selectedSector]);
+  }, [selectedSector, selectedDistrict, selectedProvince]);
 
   useEffect(() => {
-    if (selectedCell) {
+    if (selectedCell && selectedSector && selectedDistrict && selectedProvince) {
       const fetchVillages = async () => {
         try {
-          console.log('Fetching villages for cell ID:', selectedCell);
-          const response = await dataService.getChildLocations(selectedCell);
-          console.log('Villages API response:', response);
-          if (response && response.data && Array.isArray(response.data)) {
-            const villagesList = response.data.map(v => ({ id: v.id, name: v.name, code: v.code }));
-            console.log('Parsed villages list:', villagesList);
-            setVillages(villagesList);
-            if (villagesList.length === 0) {
-              console.warn('No villages found for cell:', selectedCell);
-              toast.error('No villages found for this cell. Please ensure locations are seeded.');
-            }
+          const response = await dataService.getVillages(selectedProvince, selectedDistrict, selectedSector, selectedCell);
+          if (response.data && Array.isArray(response.data)) {
+            setVillages(response.data.map(v => ({ id: v.id, name: v.village })));
           } else {
-            console.warn('Invalid response format for villages:', response);
             setVillages([]);
-            toast.error('Invalid response format when loading villages');
           }
         } catch (error) {
           console.error('Error fetching villages:', error);
@@ -178,7 +158,7 @@ const AddWarehouse = () => {
       setVillages([]);
       setSelectedVillage('');
     }
-  }, [selectedCell]);
+  }, [selectedCell, selectedSector, selectedDistrict, selectedProvince]);
 
   const handleChange = (e) => {
     setFormData({

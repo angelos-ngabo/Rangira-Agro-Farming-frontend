@@ -58,6 +58,7 @@ import InventoryRequests from './pages/InventoryRequests';
 import Notifications from './pages/Notifications';
 import Settings from './pages/Settings';
 import ChangePassword from './pages/ChangePassword';
+import SystemTesting from './pages/SystemTesting';
 
 function AppContent() {
   const location = useLocation();
@@ -90,7 +91,8 @@ function AppContent() {
     location.pathname.includes('/crop-types/add') ||
     location.pathname.includes('/crop-types/edit/') ||
     location.pathname.includes('/inventory/add') ||
-    location.pathname.includes('/inventory-requests');
+    location.pathname.includes('/inventory-requests') ||
+    location.pathname.includes('/SystemTesting');
 
   return (
     <div className="App" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
@@ -135,6 +137,7 @@ function AppContent() {
           <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/dashboard/reset-password" element={<ProtectedRoute><ResetPasswordDashboard /></ProtectedRoute>} />
           <Route path="/2fa" element={<TwoFactorAuth />} />
+          <Route path="/SystemTesting" element={<SystemTesting />} />
 
           {}
           <Route

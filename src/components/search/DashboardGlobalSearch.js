@@ -52,6 +52,11 @@ const DashboardGlobalSearch = () => {
       setResults(searchResults);
     } catch (error) {
       console.error('Dashboard search error:', error);
+      if (error.response?.status === 401) {
+        console.warn('Authentication failed during search');
+      } else {
+        console.error('Search failed:', error.response?.data?.error || error.message);
+      }
       setResults([]);
     } finally {
       setIsSearching(false);
