@@ -1,10 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import Sidebar from '../../components/layout/Sidebar';
+import DashboardLayout from '../../components/layout/DashboardLayout';
+import StatCard from '../../components/common/StatCard';
+import StatusBadge from '../../components/common/StatusBadge';
+import LoadingState from '../../components/common/LoadingState';
 import Button from '../../components/common/Button';
-import NotificationBell from '../../components/dashboard/NotificationBell';
-import DashboardHeader from '../../components/dashboard/DashboardHeader';
-import { Warehouse, Package, Eye, Pencil, X, XCircle, CheckCircle, Image, DollarSign, Mail, Edit, FileDown, CreditCard, Clock } from 'lucide-react';
+import {
+  Warehouse as WarehouseIcon,
+  Package,
+  Eye,
+  Pencil,
+  X,
+  XCircle,
+  CheckCircle,
+  Image as ImageIcon,
+  DollarSign,
+  Mail,
+  Edit,
+  FileDown,
+  CreditCard,
+  Clock,
+} from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import toast from 'react-hot-toast';
 import { dataService as api } from '../../services/dataService';
@@ -29,38 +45,28 @@ const StorekeeperDashboard = () => {
   const [selectedFarmer, setSelectedFarmer] = useState(null);
   const [messageSubject, setMessageSubject] = useState('');
   const [messageContent, setMessageContent] = useState('');
-  const [replyToNote, setReplyToNote] = useState(null); 
+  const [replyToNote, setReplyToNote] = useState(null);
 
-
-  
-
-  const { data: warehouseData, isLoading: warehouseLoading, error: warehouseError } = useQuery({
+  // 1. Warehouse query
+  const { data: warehouseData, isLoading: warehouseLoading } = useQuery({
     queryKey: ['storekeeperWarehouse', user?.id],
     queryFn: async () => {
       const response = await api.getWarehouses({ storekeeperId: user?.id });
       return response.data?.content || response.data || [];
     },
     enabled: !!user?.id,
-    refetchInterval: 10000, 
-
+    refetchInterval: 10000,
     refetchOnWindowFocus: true,
-    staleTime: 5000, 
-
+    staleTime: 5000,
     onSuccess: (data) => {
       if (data && data.length > 0) {
         const newWarehouse = data[0];
-        
-
         if (!selectedWarehouse || selectedWarehouse.id !== newWarehouse.id) {
           setSelectedWarehouse(newWarehouse);
-          
-
           queryClient.invalidateQueries(['pendingApplications']);
           queryClient.invalidateQueries(['warehouseInventory']);
         }
       } else if (selectedWarehouse) {
-        
-
         setSelectedWarehouse(null);
         queryClient.invalidateQueries(['pendingApplications']);
         queryClient.invalidateQueries(['warehouseInventory']);
@@ -72,24 +78,19 @@ const StorekeeperDashboard = () => {
     }
   });
 
-  
-
+  // Keep track of assignments
   useEffect(() => {
     const handleWarehouseAssignmentChange = () => {
       queryClient.invalidateQueries(['storekeeperWarehouse', user?.id]);
     };
 
     window.addEventListener('warehouse-assignment-changed', handleWarehouseAssignmentChange);
-    
-    
 
     const checkInterval = setInterval(() => {
       const lastUpdate = localStorage.getItem('warehouse-assignment-last-update');
       if (lastUpdate) {
         const updateTime = parseInt(lastUpdate);
         const now = Date.now();
-        
-
         if (now - updateTime < 30000) {
           queryClient.invalidateQueries(['storekeeperWarehouse', user?.id]);
         }
@@ -105,21 +106,16 @@ const StorekeeperDashboard = () => {
   useEffect(() => {
     if (warehouseData && warehouseData.length > 0) {
       const newWarehouse = warehouseData[0];
-      
-
       if (!selectedWarehouse || selectedWarehouse.id !== newWarehouse.id) {
         setSelectedWarehouse(newWarehouse);
       }
     } else if (warehouseData && warehouseData.length === 0 && selectedWarehouse) {
-      
-
       setSelectedWarehouse(null);
     }
   }, [warehouseData]);
 
-  
-
-  const { data: applicationsData, isLoading: applicationsLoading, error: applicationsError } = useQuery({
+  // 2. Applications query
+  const { data: applicationsData, isLoading: applicationsLoading } = useQuery({
     queryKey: ['pendingApplications', selectedWarehouse?.id],
     queryFn: async () => {
       const response = await api.getWarehouseAccesses({
@@ -135,11 +131,10 @@ const StorekeeperDashboard = () => {
     }
   });
 
-  const pendingApplications = applicationsData?.filter(app => app.status === 'PENDING');
+  const pendingApplications = applicationsData?.filter(app => app.status === 'PENDING') || [];
 
-  
-
-  const { data: inventoryData, isLoading: inventoryLoading, error: inventoryError } = useQuery({
+  // 3. Inventory query
+  const { data: inventoryData, isLoading: inventoryLoading } = useQuery({
     queryKey: ['warehouseInventory', selectedWarehouse?.id],
     queryFn: async () => {
       const response = await api.getInventories({ warehouseId: selectedWarehouse?.id });
@@ -152,29 +147,22 @@ const StorekeeperDashboard = () => {
     }
   });
 
-  
-
   const warehouseInventory = inventoryData?.filter(inv => {
     const hasRemaining = parseFloat(inv.remainingQuantityKg || 0) > 0;
     const isStoredOrPartiallySold = inv.status === 'STORED' || inv.status === 'PARTIALLY_SOLD';
     return hasRemaining && isStoredOrPartiallySold;
   }) || [];
 
-  
-
+  // 4. Transactions query
   const { data: warehouseTransactions, isLoading: transactionsLoading } = useQuery({
     queryKey: ['warehouseTransactions', selectedWarehouse?.id, warehouseInventory.length],
     queryFn: async () => {
       if (!selectedWarehouse?.id || !inventoryData || inventoryData.length === 0) return [];
       try {
-        
-
         const response = await api.getTransactions({ page: 0, size: 100 });
         const allTransactions = response.data?.content || response.data || [];
-        
-
         const warehouseInventoryIds = inventoryData.map(inv => inv.id);
-        return allTransactions.filter(t => 
+        return allTransactions.filter(t =>
           t.inventory && warehouseInventoryIds.includes(t.inventory.id)
         );
       } catch (error) {
@@ -186,8 +174,7 @@ const StorekeeperDashboard = () => {
     refetchInterval: 30000
   });
 
-  
-
+  // Mutations
   const approveApplicationMutation = useMutation({
     mutationFn: async ({ applicationId }) => {
       const response = await api.updateWarehouseAccessStatus(applicationId, 'APPROVED');
@@ -196,29 +183,18 @@ const StorekeeperDashboard = () => {
     onSuccess: () => {
       queryClient.invalidateQueries(['pendingApplications', selectedWarehouse?.id]);
       queryClient.invalidateQueries(['warehouseInventory', selectedWarehouse?.id]);
-      queryClient.invalidateQueries(['storekeeperWarehouse', user?.id]); 
-
+      queryClient.invalidateQueries(['storekeeperWarehouse', user?.id]);
       toast.success('Application approved and inventory added!');
     },
     onError: (error) => {
-      console.error('Error approving application:', error);
       const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message;
       toast.error(`Failed to approve application: ${errorMessage}`);
-      
-      
-
-      if (error.response?.status === 403) {
-        console.error('Authorization failed. Storekeeper may not be properly assigned to warehouse.');
-        console.error('Error details:', error.response?.data);
-      }
     }
   });
 
   const handleApproveApplication = (applicationId) => {
     approveApplicationMutation.mutate({ applicationId });
   };
-
-  
 
   const rejectApplicationMutation = useMutation({
     mutationFn: async (applicationId) => {
@@ -230,7 +206,6 @@ const StorekeeperDashboard = () => {
       toast.success('Application rejected!');
     },
     onError: (error) => {
-      console.error('Error rejecting application:', error);
       toast.error(`Failed to reject application: ${error.response?.data?.message || error.message}`);
     }
   });
@@ -254,7 +229,6 @@ const StorekeeperDashboard = () => {
       toast.success('Image uploaded successfully!');
     },
     onError: (error) => {
-      console.error('Error uploading image:', error);
       toast.error(`Failed to upload image: ${error.response?.data?.error || error.response?.data?.message || error.message}`);
       setUploadingImage(false);
     }
@@ -278,12 +252,9 @@ const StorekeeperDashboard = () => {
       setCropImagePreview('');
     },
     onError: (error) => {
-      console.error('Error updating inventory:', error);
       toast.error(`Failed to update inventory: ${error.response?.data?.message || error.message}`);
     }
   });
-
-  
 
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData) => {
@@ -299,7 +270,6 @@ const StorekeeperDashboard = () => {
       setReplyToNote(null);
     },
     onError: (error) => {
-      console.error('Error sending message:', error);
       toast.error(`Failed to send message: ${error.response?.data?.message || error.message}`);
     }
   });
@@ -323,415 +293,273 @@ const StorekeeperDashboard = () => {
     sendMessageMutation.mutate(messageData);
   };
 
-  return (
-    <>
-      <div className="dashboard">
-        <Sidebar />
-        <div className="dashboard-container">
-          <DashboardHeader />
+  const isPageLoading = warehouseLoading;
 
-          {warehouseLoading ? (
-            <div className="loading-state">
-              <div className="loader"></div>
-              <p>Loading warehouse data...</p>
-            </div>
-          ) : selectedWarehouse ? (
-            <>
-              {}
-              <div style={{
-                background: 'linear-gradient(135deg, #116530 0%, #2ea359 100%)',
-                color: 'white',
-                padding: '20px 24px',
-                borderRadius: '12px',
-                marginBottom: '24px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '16px',
-                boxShadow: '0 4px 12px rgba(17, 101, 48, 0.3)'
-              }}>
-                <Warehouse size={32} style={{ flexShrink: 0 }} />
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '14px', opacity: 0.9, marginBottom: '4px' }}>
-                    Assigned Warehouse
-                  </div>
-                  <div style={{ fontSize: '24px', fontWeight: '700' }}>
-                    {selectedWarehouse.warehouseName}
-                  </div>
-                  {selectedWarehouse.location && (
-                    <div style={{ fontSize: '14px', opacity: 0.9, marginTop: '4px' }}>
-                      {selectedWarehouse.location.name}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="stats-grid">
-                <div className="stat-card">
-                  <div className="stat-icon" style={{ backgroundColor: '#2ea35920' }}>
-                    <Warehouse size={24} style={{ color: '#2ea359' }} />
-                  </div>
-                  <div className="stat-content">
-                    <h3>Total Capacity</h3>
-                    <p className="stat-value">{(selectedWarehouse.totalCapacityKg || 0).toLocaleString()} KG</p>
-                  </div>
-                </div>
-                <div className="stat-card">
-                  <div className="stat-icon" style={{ backgroundColor: '#3b82f620' }}>
-                    <Package size={24} style={{ color: '#3b82f6' }} />
-                  </div>
-                  <div className="stat-content">
-                    <h3>Available Capacity</h3>
-                    <p className="stat-value">{(selectedWarehouse.availableCapacityKg || 0).toLocaleString()} KG</p>
-                  </div>
-                </div>
-                <div className="stat-card">
-                  <div className="stat-icon" style={{ backgroundColor: '#f59e0b20' }}>
-                    <Package size={24} style={{ color: '#f59e0b' }} />
-                  </div>
-                  <div className="stat-content">
-                    <h3>Used Capacity</h3>
-                    <p className="stat-value">
-                      {selectedWarehouse.totalCapacityKg && selectedWarehouse.availableCapacityKg
-                        ? (((selectedWarehouse.totalCapacityKg - selectedWarehouse.availableCapacityKg) / selectedWarehouse.totalCapacityKg) * 100).toFixed(1)
-                        : 0}%
-                    </p>
-                  </div>
-                </div>
-                <div className="stat-card">
-                  <div className="stat-icon" style={{ backgroundColor: '#ef444420' }}>
-                    <Package size={24} style={{ color: '#ef4444' }} />
-                  </div>
-                  <div className="stat-content">
-                    <h3>Inventory Items</h3>
-                    <p className="stat-value">{warehouseInventory?.length || 0}</p>
-                  </div>
-                </div>
-                <div className="stat-card">
-                  <div className="stat-icon" style={{ backgroundColor: '#8b5cf620' }}>
-                    <Package size={24} style={{ color: '#8b5cf6' }} />
-                  </div>
-                  <div className="stat-content">
-                    <h3>Total Inventory</h3>
-                    <p className="stat-value">
-                      {warehouseInventory?.reduce((sum, item) => sum + parseFloat(item.quantityKg || 0), 0).toLocaleString() || 0} KG
-                    </p>
-                  </div>
-                </div>
-                <div className="stat-card">
-                  <div className="stat-icon" style={{ backgroundColor: '#06b6d420' }}>
-                    <Mail size={24} style={{ color: '#06b6d4' }} />
-                  </div>
-                  <div className="stat-content">
-                    <h3>Pending Requests</h3>
-                    <p className="stat-value">{pendingApplications?.length || 0}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="dashboard-sections">
-                <div className="dashboard-section">
-                  <h2>Pending Access Requests</h2>
-                  {applicationsLoading ? (
-                    <p>Loading applications...</p>
-                  ) : pendingApplications && pendingApplications.length > 0 ? (
-                    <div className="applications-list">
-                      {pendingApplications.map((app) => (
-                        <div key={app.id} className="application-card">
-                          <div className="application-info">
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                              <h4>{app.user?.firstName} {app.user?.lastName}</h4>
-                              <Button
-                                variant="outline"
-                                size="small"
-                                icon={Eye}
-                                onClick={() => {
-                                  setSelectedApplication(app);
-                                  setShowReviewModal(true);
-                                }}
-                              >
-                                Review Details
-                              </Button>
-                            </div>
-                            <p><strong>Crop:</strong> {app.cropType?.cropName}</p>
-                            <p><strong>Quantity:</strong> {app.cropQuantityKg} KG</p>
-                            <p><strong>Status:</strong> <span className={`badge badge-${app.status?.toLowerCase()}`}>{app.status}</span></p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p>No pending applications</p>
-                  )}
-                </div>
-
-                <div className="dashboard-section">
-                  <h2>Warehouse Inventory</h2>
-                  {inventoryLoading ? (
-                    <p>Loading inventory...</p>
-                  ) : warehouseInventory && warehouseInventory.length > 0 ? (
-                    <div className="inventory-list">
-                      {warehouseInventory.map((item) => (
-                        <div key={item.id} className="inventory-item">
-                          <div>
-                            {item.cropImageUrl && (
-                              <img
-                                src={item.cropImageUrl.startsWith('http') ? item.cropImageUrl : `${process.env.REACT_APP_BACKEND_URL ?? 'http://localhost:8081'}${item.cropImageUrl}`}
-                                alt={item.cropType?.cropName || 'Crop'}
-                                style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '8px', marginBottom: '8px' }}
-                              />
-                            )}
-                            <h4>{item.cropType?.cropName || 'Unknown Crop'}</h4>
-                            <p><strong>Code:</strong> {item.inventoryCode}</p>
-                            <p><strong>Farmer:</strong> {item.farmer?.firstName} {item.farmer?.lastName}</p>
-                            <p><strong>Quantity:</strong> {item.quantityKg} {item.cropType?.measurementUnit || 'KG'}</p>
-                            <p><strong>Remaining:</strong> {item.remainingQuantityKg} {item.cropType?.measurementUnit || 'KG'}</p>
-                            <p><strong>Grade:</strong> {item.qualityGrade}</p>
-                            <p><strong>Status:</strong> <span className={`badge badge-${item.status?.toLowerCase()}`}>{item.status}</span></p>
-                            {item.storageDate && (
-                              <p><strong>Storage Date:</strong> {new Date(item.storageDate).toLocaleDateString()}</p>
-                            )}
-                            <div style={{ marginTop: '12px', display: 'flex', gap: '8px' }}>
-                              <Button
-                                variant="outline"
-                                size="small"
-                                icon={Pencil}
-                                onClick={() => {
-                                  setSelectedInventory(item);
-                                  setEditCropImageUrl(item.cropImageUrl || '');
-                                  setEditQuantityKg(item.quantityKg?.toString() || '');
-                                  setEditRemainingQuantityKg(item.remainingQuantityKg?.toString() || '');
-                                  setEditDesiredPricePerKg(item.cropType?.pricePerKg?.toString() || '');
-                                  setCropImageFile(null);
-                                  setCropImagePreview(item.cropImageUrl || '');
-                                  setShowEditInventoryModal(true);
-                                }}
-                              >
-                                Edit
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div style={{ textAlign: 'center', padding: '20px', color: '#666' }}>
-                      <Package size={48} style={{ opacity: 0.3, marginBottom: '12px' }} />
-                      <p>No inventory in this warehouse</p>
-                    </div>
-                  )}
-                </div>
-
-                {}
-                <div className="dashboard-section">
-                  <h2>Transactions & Receipts</h2>
-                  {transactionsLoading ? (
-                    <p>Loading transactions...</p>
-                  ) : warehouseTransactions && warehouseTransactions.length > 0 ? (
-                    <div className="transactions-list">
-                      {warehouseTransactions.map((transaction) => (
-                        <div key={transaction.id} className="transaction-card">
-                          <div className="transaction-header">
-                            <div>
-                              <h4 style={{ margin: 0 }}>Transaction {transaction.transactionCode}</h4>
-                              <p className="transaction-subtitle">
-                                {transaction.inventory?.cropType?.cropName} - {transaction.quantityKg} {transaction.inventory?.cropType?.measurementUnit || 'KG'}
-                              </p>
-                            </div>
-                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                              <span className={`badge badge-${transaction.paymentStatus?.toLowerCase()}`}>
-                                {transaction.paymentStatus}
-                              </span>
-                              {transaction.deliveryStatus && (
-                                <span className={`badge badge-${transaction.deliveryStatus?.toLowerCase()}`}>
-                                  {transaction.deliveryStatus}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <div className="transaction-details">
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '16px', marginBottom: '16px' }}>
-                              <div>
-                                <p className="transaction-detail-label">Buyer</p>
-                                <p className="transaction-detail-value">
-                                  {transaction.buyer?.firstName} {transaction.buyer?.lastName}
-                                </p>
-                              </div>
-                              <div>
-                                <p className="transaction-detail-label">Amount</p>
-                                <p className="transaction-detail-value">
-                                  RWF {transaction.totalAmount?.toLocaleString()}
-                                </p>
-                              </div>
-                              <div>
-                                <p className="transaction-detail-label">Payment Status</p>
-                                <p className="transaction-detail-value">
-                                  <span className={`badge badge-${transaction.paymentStatus?.toLowerCase() || 'secondary'}`}>
-                                    {transaction.paymentStatus || 'N/A'}
-                                  </span>
-                                </p>
-                              </div>
-                              <div>
-                                <p className="transaction-detail-label">Delivery Status</p>
-                                <p className="transaction-detail-value">
-                                  <span className={`badge badge-${transaction.deliveryStatus?.toLowerCase() || 'secondary'}`}>
-                                    {transaction.deliveryStatus || 'N/A'}
-                                  </span>
-                                </p>
-                              </div>
-                              <div>
-                                <p className="transaction-detail-label">Date</p>
-                                <p className="transaction-detail-value">
-                                  {new Date(transaction.transactionDate).toLocaleDateString()}
-                                </p>
-                              </div>
-                            </div>
-                            {transaction.inventory && (
-                              <div className="transaction-remaining-box">
-                                <p className="transaction-remaining-label">Remaining Quantity:</p>
-                                <p className="transaction-remaining-value">
-                                  {transaction.inventory.remainingQuantityKg} {transaction.inventory.cropType?.measurementUnit || 'KG'}
-                                </p>
-                              </div>
-                            )}
-                            {transaction.paymentStatus === 'PAID' && (
-                              <div style={{ display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap' }}>
-                                <Button
-                                  variant="outline"
-                                  size="small"
-                                  icon={FileDown}
-                                  onClick={async () => {
-                                    try {
-                                      const response = await api.downloadReceiptAdmin(transaction.id);
-                                      const blob = new Blob([response.data], { type: 'text/html' });
-                                      const url = window.URL.createObjectURL(blob);
-                                      const link = document.createElement('a');
-                                      link.href = url;
-                                      link.download = `receipt_${transaction.transactionCode}.html`;
-                                      document.body.appendChild(link);
-                                      link.click();
-                                      document.body.removeChild(link);
-                                      window.URL.revokeObjectURL(url);
-                                      toast.success('Receipt downloaded successfully!');
-                                    } catch (error) {
-                                      console.error('Error downloading receipt:', error);
-                                      toast.error('Failed to download receipt');
-                                    }
-                                  }}
-                                >
-                                  Export Receipt
-                                </Button>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="no-transactions">
-                      <CreditCard size={48} style={{ opacity: 0.3, marginBottom: '12px' }} />
-                      <p>No transactions found for this warehouse</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </>
-          ) : (
-            <div className="no-warehouse">
-              <Warehouse size={48} />
-              <p>No warehouse assigned to you yet.</p>
-              <p>Please contact an administrator.</p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {}
-      {showMessageModal && (
-        <div className="message-modal" onClick={(e) => {
-          if (e.target.className === 'message-modal') {
-            setShowMessageModal(false);
-          }
-        }}>
-          <div className="message-modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="message-modal-header">
-              <h3>
-                {replyToNote ? 'Reply to Farmer' : 'Send Message to Farmer'}
-              </h3>
-              <Button
-                variant="outline"
-                size="small"
-                className="message-modal-close"
-                onClick={() => {
-                  setShowMessageModal(false);
-                  setSelectedFarmer(null);
-                  setMessageSubject('');
-                  setMessageContent('');
-                  setReplyToNote(null);
-                }}
-                icon={X}
-              />
-            </div>
-
-            {selectedFarmer && (
-              <div style={{ marginBottom: '16px', padding: '12px', background: '#f9fafb', borderRadius: '8px' }}>
-                <p style={{ margin: 0, fontSize: '14px' }}>
-                  <strong>To:</strong> {selectedFarmer.firstName} {selectedFarmer.lastName} ({selectedFarmer.email})
-                </p>
-              </div>
-            )}
-
-            <form className="message-form" onSubmit={handleSubmitMessage}>
-              <div className="message-form-group">
-                <label htmlFor="messageSubject">Subject *</label>
-                <input
-                  type="text"
-                  id="messageSubject"
-                  value={messageSubject}
-                  onChange={(e) => setMessageSubject(e.target.value)}
-                  placeholder="Enter message subject"
-                  required
-                />
-              </div>
-
-              <div className="message-form-group">
-                <label htmlFor="messageContent">Message *</label>
-                <textarea
-                  id="messageContent"
-                  value={messageContent}
-                  onChange={(e) => setMessageContent(e.target.value)}
-                  placeholder="Enter your message..."
-                  required
-                />
-              </div>
-
-              <div className="message-form-actions">
-                <Button
-                  variant="secondary"
-                  onClick={() => {
-                    setShowMessageModal(false);
-                    setSelectedFarmer(null);
-                    setMessageSubject('');
-                    setMessageContent('');
-                    setReplyToNote(null);
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  variant="primary"
-                  loading={sendMessageMutation.isLoading}
-                  icon={Mail}
-                >
-                  {sendMessageMutation.isLoading ? 'Sending...' : 'Send Message'}
-                </Button>
-              </div>
-            </form>
+  if (isPageLoading) {
+    return (
+      <DashboardLayout title="Storekeeper Dashboard" subtitle="Loading warehouse details...">
+        <div style={{ padding: '24px 0' }}>
+          <LoadingState type="skeleton-cards" cardsCount={3} />
+          <div style={{ marginTop: '32px' }}>
+            <LoadingState type="spinner" message="Syncing storage records..." />
           </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  return (
+    <DashboardLayout title="Storekeeper Dashboard" subtitle={`Welcome back, Storekeeper ${user?.firstName || ''}!`}>
+      {selectedWarehouse ? (
+        <>
+          {/* Warehouse Header Banner */}
+          <div style={{
+            background: 'linear-gradient(135deg, var(--primary-green-dark) 0%, var(--primary-green) 100%)',
+            color: 'white',
+            padding: '24px',
+            borderRadius: 'var(--radius-lg)',
+            marginBottom: '32px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '20px',
+            boxShadow: 'var(--card-shadow)'
+          }}>
+            <WarehouseIcon size={40} style={{ flexShrink: 0 }} />
+            <div style={{ flex: 1 }}>
+              <span style={{ fontSize: '12px', opacity: 0.8, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Assigned Storage Facility</span>
+              <h2 style={{ fontSize: '24px', fontWeight: 'bold', margin: '4px 0 0 0' }}>{selectedWarehouse.warehouseName}</h2>
+              {selectedWarehouse.location && (
+                <p style={{ fontSize: '13px', opacity: 0.9, margin: '6px 0 0 0' }}>Location: {selectedWarehouse.location.name}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Stats Cards */}
+          <div className="stats-grid" style={{ marginBottom: '32px' }}>
+            <StatCard
+              title="Total Capacity"
+              value={`${(selectedWarehouse.totalCapacityKg || 0).toLocaleString()} KG`}
+              icon={WarehouseIcon}
+              color="var(--primary-green)"
+            />
+            <StatCard
+              title="Available Capacity"
+              value={`${(selectedWarehouse.availableCapacityKg || 0).toLocaleString()} KG`}
+              icon={Package}
+              color="#3b82f6"
+            />
+            <StatCard
+              title="Capacity Used"
+              value={`${selectedWarehouse.totalCapacityKg && selectedWarehouse.availableCapacityKg
+                ? (((selectedWarehouse.totalCapacityKg - selectedWarehouse.availableCapacityKg) / selectedWarehouse.totalCapacityKg) * 100).toFixed(1)
+                : 0}%`}
+              icon={Package}
+              color="#f59e0b"
+            />
+            <StatCard
+              title="Active Inventory Lots"
+              value={warehouseInventory.length.toString()}
+              icon={Package}
+              color="#10b981"
+            />
+            <StatCard
+              title="Pending Storage Requests"
+              value={pendingApplications.length.toString()}
+              icon={Mail}
+              color="#ef4444"
+            />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '32px', alignItems: 'flex-start' }}>
+            
+            {/* Left Side: Pending Access Requests */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+              <div className="dashboard-section" style={{ margin: 0 }}>
+                <h2 style={{ fontSize: '18px', marginBottom: '20px' }}>Pending Crop Storage Requests</h2>
+                
+                {applicationsLoading ? (
+                  <LoadingState type="spinner" message="Fetching pending items..." />
+                ) : pendingApplications.length > 0 ? (
+                  <div className="applications-list" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    {pendingApplications.map((app) => (
+                      <div key={app.id} className="application-card" style={{ padding: '20px', border: '1px solid var(--border-light)', borderRadius: 'var(--radius-lg)' }}>
+                        <div className="application-info">
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                            <h4 style={{ margin: 0, fontSize: '15px' }}>{app.user?.firstName} {app.user?.lastName}</h4>
+                            <Button
+                              variant="outline"
+                              size="small"
+                              icon={Eye}
+                              onClick={() => {
+                                setSelectedApplication(app);
+                                setShowReviewModal(true);
+                              }}
+                            >
+                              Review
+                            </Button>
+                          </div>
+                          <div style={{ fontSize: '13px', color: 'var(--text-light)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            <span><strong>Crop:</strong> {app.cropType?.cropName}</span>
+                            <span><strong>Quantity:</strong> {app.cropQuantityKg} KG</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                              <span>Status:</span>
+                              <StatusBadge status={app.status} />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-light)', fontStyle: 'italic' }}>No pending applications</p>
+                )}
+              </div>
+            </div>
+
+            {/* Right Side: Warehouse Inventory */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+              <div className="dashboard-section" style={{ margin: 0 }}>
+                <h2 style={{ fontSize: '18px', marginBottom: '20px' }}>Stored Crop Inventory</h2>
+                
+                {inventoryLoading ? (
+                  <LoadingState type="spinner" message="Reading stock levels..." />
+                ) : warehouseInventory.length > 0 ? (
+                  <div className="inventory-list" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    {warehouseInventory.map((item) => (
+                      <div key={item.id} className="inventory-item" style={{ padding: '20px', border: '1px solid var(--border-light)', borderRadius: 'var(--radius-lg)' }}>
+                        <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', marginBottom: '12px' }}>
+                          {item.cropImageUrl ? (
+                            <img
+                              src={item.cropImageUrl.startsWith('http') ? item.cropImageUrl : `${process.env.REACT_APP_BACKEND_URL ?? 'http://localhost:8081'}${item.cropImageUrl}`}
+                              alt={item.cropType?.cropName || 'Crop'}
+                              style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: '8px', flexShrink: 0 }}
+                            />
+                          ) : (
+                            <div style={{ width: '48px', height: '48px', background: 'var(--primary-green-light)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                              <Package size={20} color="var(--primary-green)" />
+                            </div>
+                          )}
+                          <div>
+                            <h4 style={{ margin: '0 0 4px 0', fontSize: '15px' }}>{item.cropType?.cropName || 'Unknown Crop'}</h4>
+                            <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-light)' }}>Code: {item.inventoryCode}</p>
+                          </div>
+                        </div>
+                        
+                        <div style={{ fontSize: '13px', color: 'var(--text-gray)', display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '12px' }}>
+                          <span><strong>Farmer:</strong> {item.farmer?.firstName} {item.farmer?.lastName}</span>
+                          <span><strong>Quantity:</strong> {item.quantityKg} KG | <strong>Remaining:</strong> {item.remainingQuantityKg} KG</span>
+                          <span><strong>Grade:</strong> {item.qualityGrade}</span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                            <span>Status:</span>
+                            <StatusBadge status={item.status} />
+                          </div>
+                        </div>
+                        
+                        <Button
+                          variant="outline"
+                          size="small"
+                          icon={Pencil}
+                          onClick={() => {
+                            setSelectedInventory(item);
+                            setEditCropImageUrl(item.cropImageUrl || '');
+                            setEditQuantityKg(item.quantityKg?.toString() || '');
+                            setEditRemainingQuantityKg(item.remainingQuantityKg?.toString() || '');
+                            setEditDesiredPricePerKg(item.cropType?.pricePerKg?.toString() || '');
+                            setCropImageFile(null);
+                            setCropImagePreview(item.cropImageUrl || '');
+                            setShowEditInventoryModal(true);
+                          }}
+                        >
+                          Edit Lot Specs
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-light)', border: '1px dashed var(--border-light)', borderRadius: 'var(--radius-lg)' }}>
+                    <Package size={32} style={{ opacity: 0.3, marginBottom: '12px' }} />
+                    <p style={{ margin: 0 }}>No stored lots in this warehouse.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Transactions List */}
+          <div className="dashboard-section" style={{ border: '1px solid var(--border-light)', borderRadius: 'var(--radius-lg)', marginTop: '32px' }}>
+            <h2 style={{ fontSize: '18px', marginBottom: '20px' }}>Active Transactions & Releases</h2>
+            
+            {transactionsLoading ? (
+              <LoadingState type="spinner" message="Syncing ledger..." />
+            ) : warehouseTransactions && warehouseTransactions.length > 0 ? (
+              <div className="transactions-list" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {warehouseTransactions.map((transaction) => (
+                  <div key={transaction.id} className="transaction-card" style={{ padding: '20px', border: '1px solid var(--border-light)', borderRadius: 'var(--radius-lg)' }}>
+                    <div className="transaction-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                      <div>
+                        <h4 style={{ margin: 0, fontSize: '15px' }}>Transaction {transaction.transactionCode}</h4>
+                        <p style={{ color: 'var(--text-light)', fontSize: '12px', margin: '4px 0 0 0' }}>
+                          {transaction.inventory?.cropType?.cropName} - {transaction.quantityKg} KG
+                        </p>
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <StatusBadge status={transaction.paymentStatus} />
+                        {transaction.deliveryStatus && (
+                          <StatusBadge status={transaction.deliveryStatus} />
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', borderTop: '1px solid var(--border-light)', paddingTop: '16px' }}>
+                      <div style={{ fontSize: '13px', color: 'var(--text-gray)' }}>
+                        <span>Buyer: <strong>{transaction.buyer?.firstName} {transaction.buyer?.lastName}</strong> | Amount: <strong>RWF {transaction.totalAmount?.toLocaleString()}</strong></span>
+                      </div>
+                      
+                      {transaction.paymentStatus === 'PAID' && (
+                        <Button
+                          variant="outline"
+                          size="small"
+                          icon={FileDown}
+                          onClick={async () => {
+                            try {
+                              const response = await api.downloadReceiptAdmin(transaction.id);
+                              const blob = new Blob([response.data], { type: 'text/html' });
+                              const url = window.URL.createObjectURL(blob);
+                              const link = document.createElement('a');
+                              link.href = url;
+                              link.download = `receipt_${transaction.transactionCode}.html`;
+                              document.body.appendChild(link);
+                              link.click();
+                              document.body.removeChild(link);
+                              window.URL.revokeObjectURL(url);
+                              toast.success('Receipt exported successfully!');
+                            } catch (error) {
+                              console.error('Error downloading receipt:', error);
+                              toast.error('Failed to export receipt');
+                            }
+                          }}
+                        >
+                          Export Release Receipt
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-light)', fontStyle: 'italic', textAlign: 'center', padding: '24px' }}>No transactions found for stored crops</p>
+            )}
+          </div>
+        </>
+      ) : (
+        <div style={{ textAlign: 'center', padding: '48px 24px', border: '1px dashed var(--border-light)', borderRadius: 'var(--radius-lg)' }}>
+          <WarehouseIcon size={48} style={{ color: 'var(--text-light)', marginBottom: '16px' }} />
+          <h3>No assigned warehouse</h3>
+          <p style={{ color: 'var(--text-light)', maxWidth: '400px', margin: '8px auto 0 auto' }}>You are registered as a storekeeper, but have not yet been assigned to manage a warehouse facility. Please contact a system administrator.</p>
         </div>
       )}
 
-      {}
+      {/* Review Access Application Modal */}
       {showReviewModal && selectedApplication && (
         <div className="modal-overlay" onClick={() => setShowReviewModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -739,63 +567,46 @@ const StorekeeperDashboard = () => {
               <h2>Review Warehouse Access Request</h2>
               <Button variant="outline" size="small" className="modal-close" onClick={() => setShowReviewModal(false)} icon={X} />
             </div>
-            <div className="modal-body">
-              <div className="review-section">
-                <h3>Farmer Information</h3>
-                <p><strong>Name:</strong> {selectedApplication.user?.firstName} {selectedApplication.user?.lastName}</p>
-                <p><strong>Email:</strong> {selectedApplication.user?.email}</p>
-                <p><strong>Phone:</strong> {selectedApplication.user?.phoneNumber || 'N/A'}</p>
-              </div>
+            <div className="modal-body" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div style={{ padding: '16px', background: 'var(--background-beige)', borderRadius: '8px', fontSize: '13px' }}>
+                  <h3 style={{ margin: '0 0 10px 0', fontSize: '14px' }}>Farmer Details</h3>
+                  <p style={{ margin: '0 0 4px 0' }}><strong>Name:</strong> {selectedApplication.user?.firstName} {selectedApplication.user?.lastName}</p>
+                  <p style={{ margin: '0 0 4px 0' }}><strong>Email:</strong> {selectedApplication.user?.email}</p>
+                  <p style={{ margin: 0 }}><strong>Phone:</strong> {selectedApplication.user?.phoneNumber || 'N/A'}</p>
+                </div>
 
-              <div className="review-section">
-                <h3>Request Details</h3>
-                <p><strong>Requested Capacity:</strong> {selectedApplication.requestedCapacityKg} KG</p>
-                <p><strong>Available Capacity:</strong> {selectedWarehouse?.availableCapacityKg} KG</p>
-                <p><strong>Status:</strong> {selectedApplication.status}</p>
-                <p><strong>Request Date:</strong> {selectedApplication.createdAt ? new Date(selectedApplication.createdAt).toLocaleDateString() : 'N/A'}</p>
-                {selectedApplication.notes && (
-                  <p><strong>Notes:</strong> {selectedApplication.notes}</p>
+                <div style={{ padding: '16px', background: 'var(--background-beige)', borderRadius: '8px', fontSize: '13px' }}>
+                  <h3 style={{ margin: '0 0 10px 0', fontSize: '14px' }}>Request Details</h3>
+                  <p style={{ margin: '0 0 4px 0' }}><strong>Requested Capacity:</strong> {selectedApplication.requestedCapacityKg} KG</p>
+                  <p style={{ margin: '0 0 4px 0' }}><strong>Available Warehouse Capacity:</strong> {selectedWarehouse?.availableCapacityKg} KG</p>
+                  {selectedApplication.notes && (
+                    <p style={{ margin: 0 }}><strong>Notes:</strong> {selectedApplication.notes}</p>
+                  )}
+                </div>
+
+                {selectedApplication.cropType && (
+                  <div style={{ padding: '16px', background: 'var(--background-beige)', borderRadius: '8px', fontSize: '13px' }}>
+                    <h3 style={{ margin: '0 0 10px 0', fontSize: '14px' }}>Crop Details</h3>
+                    <p style={{ margin: '0 0 4px 0' }}><strong>Crop:</strong> {selectedApplication.cropType?.cropName}</p>
+                    <p style={{ margin: '0 0 4px 0' }}><strong>Quantity:</strong> {selectedApplication.cropQuantityKg} KG</p>
+                    <p style={{ margin: '0 0 4px 0' }}><strong>Quality Grade:</strong> {selectedApplication.qualityGrade}</p>
+                    {selectedApplication.cropImageUrl && (
+                      <div style={{ marginTop: '12px' }}>
+                        <img
+                          src={selectedApplication.cropImageUrl.startsWith('http')
+                            ? selectedApplication.cropImageUrl
+                            : `${process.env.REACT_APP_BACKEND_URL ?? 'http://localhost:8081'}${selectedApplication.cropImageUrl}`}
+                          alt="Crop lot"
+                          style={{ maxWidth: '100%', maxHeight: '240px', borderRadius: '8px', objectFit: 'cover' }}
+                        />
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
 
-              {selectedApplication.cropType && (
-                <div className="review-section">
-                  <h3>Crop Information</h3>
-                  <p><strong>Crop Type:</strong> {selectedApplication.cropType?.cropName} ({selectedApplication.cropType?.category})</p>
-                  <p><strong>Quantity:</strong> {selectedApplication.cropQuantityKg} {selectedApplication.cropType?.measurementUnit || 'KG'}</p>
-                  <p><strong>Quality Grade:</strong> {selectedApplication.qualityGrade}</p>
-                  {selectedApplication.expectedStorageDate && (
-                    <p><strong>Expected Storage Date:</strong> {new Date(selectedApplication.expectedStorageDate).toLocaleDateString()}</p>
-                  )}
-                  {selectedApplication.expectedWithdrawalDate && (
-                    <p><strong>Expected Withdrawal Date:</strong> {new Date(selectedApplication.expectedWithdrawalDate).toLocaleDateString()}</p>
-                  )}
-                  {selectedApplication.cropNotes && (
-                    <p><strong>Crop Notes:</strong> {selectedApplication.cropNotes}</p>
-                  )}
-
-                  {selectedApplication.cropImageUrl && (
-                    <div style={{ marginTop: '16px' }}>
-                      <h4>Crop Image</h4>
-                      <img
-                        src={selectedApplication.cropImageUrl.startsWith('http')
-                          ? selectedApplication.cropImageUrl
-                          : `${process.env.REACT_APP_BACKEND_URL ?? 'http://localhost:8081'}${selectedApplication.cropImageUrl}`}
-                        alt="Crop"
-                        style={{
-                          maxWidth: '100%',
-                          maxHeight: '400px',
-                          borderRadius: '8px',
-                          border: '1px solid #ddd',
-                          marginTop: '8px'
-                        }}
-                      />
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <div className="modal-actions" style={{ marginTop: '24px', display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '24px' }}>
                 <Button variant="outline" onClick={() => setShowReviewModal(false)}>
                   Close
                 </Button>
@@ -807,7 +618,7 @@ const StorekeeperDashboard = () => {
                     setShowReviewModal(false);
                   }}
                 >
-                  Reject
+                  Reject Request
                 </Button>
                 <Button
                   variant="success"
@@ -817,7 +628,7 @@ const StorekeeperDashboard = () => {
                     setShowReviewModal(false);
                   }}
                 >
-                  Approve & Add to Warehouse
+                  Approve & Release Space
                 </Button>
               </div>
             </div>
@@ -825,19 +636,19 @@ const StorekeeperDashboard = () => {
         </div>
       )}
 
-      {}
+      {/* Edit Inventory Modal */}
       {showEditInventoryModal && selectedInventory && (
         <div className="modal-overlay" onClick={() => setShowEditInventoryModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px' }}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '560px' }}>
             <div className="modal-header">
-              <h2>Edit Inventory</h2>
+              <h2>Modify Crop Lot Specifications</h2>
               <Button variant="outline" size="small" className="modal-close" onClick={() => setShowEditInventoryModal(false)} icon={X} />
             </div>
             <div className="modal-body">
-              <div style={{ marginBottom: '16px', padding: '12px', background: '#f9fafb', borderRadius: '8px' }}>
-                <p><strong>Crop:</strong> {selectedInventory.cropType?.cropName || 'Unknown'}</p>
-                <p><strong>Inventory Code:</strong> {selectedInventory.inventoryCode}</p>
-                <p><strong>Farmer:</strong> {selectedInventory.farmer?.firstName} {selectedInventory.farmer?.lastName}</p>
+              <div style={{ padding: '16px', background: 'var(--background-beige)', borderRadius: '8px', fontSize: '13px', marginBottom: '20px' }}>
+                <p style={{ margin: '0 0 4px 0' }}><strong>Crop:</strong> {selectedInventory.cropType?.cropName}</p>
+                <p style={{ margin: '0 0 4px 0' }}><strong>Code:</strong> {selectedInventory.inventoryCode}</p>
+                <p style={{ margin: 0 }}><strong>Farmer:</strong> {selectedInventory.farmer?.firstName} {selectedInventory.farmer?.lastName}</p>
               </div>
 
               <form onSubmit={async (e) => {
@@ -877,135 +688,94 @@ const StorekeeperDashboard = () => {
                 }
 
                 if (Object.keys(updateData).length === 0) {
-                  toast.error('Please enter at least one field to update');
+                  toast.error('No changes detected');
                   return;
                 }
 
                 updateInventoryMutation.mutate(updateData);
               }}>
-                <div className="form-group" style={{ marginBottom: '20px' }}>
-                  <label htmlFor="cropImageUpload">
-                    <Image size={16} style={{ display: 'inline', marginRight: '4px' }} />
-                    Crop Image
-                  </label>
-                  <input
-                    type="file"
-                    id="cropImageUpload"
-                    accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files[0];
-                      if (file) {
-                        if (file.size > 5 * 1024 * 1024) {
-                          toast.error('File size must be less than 5MB');
-                          e.target.value = '';
-                          return;
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Crop Image Upload</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          if (file.size > 5 * 1024 * 1024) {
+                            toast.error('File size must be less than 5MB');
+                            e.target.value = '';
+                            return;
+                          }
+                          setCropImageFile(file);
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            setCropImagePreview(reader.result);
+                          };
+                          reader.readAsDataURL(file);
                         }
-                        if (!file.type.startsWith('image/')) {
-                          toast.error('File must be an image');
-                          e.target.value = '';
-                          return;
-                        }
-                        setCropImageFile(file);
-                        const reader = new FileReader();
-                        reader.onloadend = () => {
-                          setCropImagePreview(reader.result);
-                        };
-                        reader.readAsDataURL(file);
-                      }
-                    }}
-                    disabled={uploadingImage}
-                  />
-                  {uploadingImage && <small style={{ color: '#666', fontSize: '12px', display: 'block', marginTop: '5px' }}>Uploading image...</small>}
-                  {cropImagePreview && (
-                    <div style={{ marginTop: '10px' }}>
-                      <img
-                        src={cropImagePreview}
-                        alt="Crop preview"
-                        style={{ maxWidth: '200px', maxHeight: '200px', borderRadius: '8px', border: '1px solid #ddd' }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setCropImageFile(null);
-                          setCropImagePreview(editCropImageUrl || '');
-                        }}
-                        style={{ marginLeft: '10px', padding: '5px 10px', background: '#f44336', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  )}
-                  <small style={{ color: '#666', fontSize: '12px', display: 'block', marginTop: '5px' }}>
-                    Upload a new image or enter image URL below (max 5MB)
-                  </small>
+                      }}
+                      disabled={uploadingImage}
+                    />
+                    {cropImagePreview && (
+                      <div style={{ marginTop: '10px' }}>
+                        <img
+                          src={cropImagePreview}
+                          alt="Crop preview"
+                          style={{ maxWidth: '120px', maxHeight: '120px', borderRadius: '8px', objectFit: 'cover' }}
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label htmlFor="editCropImageUrl" style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Crop Image URL (Optional)</label>
+                    <input
+                      type="text"
+                      id="editCropImageUrl"
+                      value={editCropImageUrl}
+                      onChange={(e) => setEditCropImageUrl(e.target.value)}
+                      placeholder="Enter image link"
+                      style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-light)' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="editQuantityKg" style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Total Stock Weight (KG)</label>
+                    <input
+                      type="number"
+                      id="editQuantityKg"
+                      value={editQuantityKg}
+                      onChange={(e) => setEditQuantityKg(e.target.value)}
+                      style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-light)' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="editRemainingQuantityKg" style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Remaining Stock Weight (KG)</label>
+                    <input
+                      type="number"
+                      id="editRemainingQuantityKg"
+                      value={editRemainingQuantityKg}
+                      onChange={(e) => setEditRemainingQuantityKg(e.target.value)}
+                      style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-light)' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="editDesiredPricePerKg" style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>Desired Sale Price per KG (RWF)</label>
+                    <input
+                      type="number"
+                      id="editDesiredPricePerKg"
+                      value={editDesiredPricePerKg}
+                      onChange={(e) => setEditDesiredPricePerKg(e.target.value)}
+                      style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-light)' }}
+                    />
+                  </div>
                 </div>
 
-                <div className="form-group" style={{ marginBottom: '20px' }}>
-                  <label htmlFor="editCropImageUrl">
-                    Crop Image URL (Alternative)
-                  </label>
-                  <input
-                    type="text"
-                    id="editCropImageUrl"
-                    value={editCropImageUrl}
-                    onChange={(e) => {
-                      setEditCropImageUrl(e.target.value);
-                      if (!cropImageFile) {
-                        setCropImagePreview(e.target.value);
-                      }
-                    }}
-                    placeholder="Enter image URL"
-                    disabled={!!cropImageFile}
-                  />
-                  <small style={{ color: '#666', fontSize: '12px' }}>Leave empty to keep current image. Disabled when file is selected.</small>
-                </div>
-
-                <div className="form-group" style={{ marginBottom: '20px' }}>
-                  <label htmlFor="editQuantityKg">Stock Quantity ({selectedInventory.cropType?.measurementUnit || 'KG'})</label>
-                  <input
-                    type="number"
-                    id="editQuantityKg"
-                    value={editQuantityKg}
-                    onChange={(e) => setEditQuantityKg(e.target.value)}
-                    placeholder="Enter new quantity"
-                    min="0"
-                    step="0.01"
-                  />
-                  <small style={{ color: '#666', fontSize: '12px' }}>Current: {selectedInventory.quantityKg} {selectedInventory.cropType?.measurementUnit || 'KG'}</small>
-                </div>
-
-                <div className="form-group" style={{ marginBottom: '20px' }}>
-                  <label htmlFor="editRemainingQuantityKg">Remaining Quantity ({selectedInventory.cropType?.measurementUnit || 'KG'})</label>
-                  <input
-                    type="number"
-                    id="editRemainingQuantityKg"
-                    value={editRemainingQuantityKg}
-                    onChange={(e) => setEditRemainingQuantityKg(e.target.value)}
-                    placeholder="Enter remaining quantity"
-                    min="0"
-                    step="0.01"
-                  />
-                  <small style={{ color: '#666', fontSize: '12px' }}>Current: {selectedInventory.remainingQuantityKg} {selectedInventory.cropType?.measurementUnit || 'KG'}</small>
-                </div>
-
-                <div className="form-group" style={{ marginBottom: '20px' }}>
-                  <label htmlFor="editDesiredPricePerKg">
-                    <DollarSign size={16} style={{ display: 'inline', marginRight: '4px' }} />
-                    Desired Price Per {selectedInventory.cropType?.measurementUnit || 'KG'} (RWF)
-                  </label>
-                  <input
-                    type="number"
-                    id="editDesiredPricePerKg"
-                    value={editDesiredPricePerKg}
-                    onChange={(e) => setEditDesiredPricePerKg(e.target.value)}
-                    placeholder="Enter desired price"
-                    min="0"
-                    step="0.01"
-                  />
-                  <small style={{ color: '#666', fontSize: '12px' }}>Current: RWF {selectedInventory.cropType?.pricePerKg?.toLocaleString() || '0'}</small>
-                </div>
-
-                <div className="modal-actions" style={{ marginTop: '24px', display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '24px' }}>
                   <Button
                     variant="outline"
                     icon={X}
@@ -1023,7 +793,7 @@ const StorekeeperDashboard = () => {
                     icon={Edit}
                     disabled={updateInventoryMutation.isLoading}
                   >
-                    {updateInventoryMutation.isLoading ? 'Updating...' : 'Update Inventory'}
+                    {updateInventoryMutation.isLoading ? 'Updating...' : 'Save Lot Changes'}
                   </Button>
                 </div>
               </form>
@@ -1031,7 +801,7 @@ const StorekeeperDashboard = () => {
           </div>
         </div>
       )}
-    </>
+    </DashboardLayout>
   );
 };
 

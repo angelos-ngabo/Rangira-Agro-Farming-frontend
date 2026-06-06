@@ -253,7 +253,7 @@ const InventoryRequestForm = () => {
 
   
 
-  const getImageUrl = (url) => {
+  const getImageUrl = (url, isCropType = false) => {
     if (!url || typeof url !== 'string' || url.trim() === '') {
       return '';
     }
@@ -263,7 +263,8 @@ const InventoryRequestForm = () => {
     if (url.startsWith('/api/')) {
       return `${process.env.REACT_APP_BACKEND_URL ?? 'http://localhost:8081'}${url}`;
     }
-    return `${process.env.REACT_APP_API_URL ?? 'http://localhost:8081/api'}/files/${url}`;
+    const pathPrefix = isCropType ? '/files/crop-images/' : '/files/warehouse-access-images/';
+    return `${process.env.REACT_APP_API_URL ?? 'http://localhost:8081/api'}${pathPrefix}${url}`;
   };
 
   return (

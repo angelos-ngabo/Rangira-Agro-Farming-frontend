@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import LoadingState from '../common/LoadingState';
 import './DataTable.css';
 
 const DataTable = ({
@@ -94,8 +95,8 @@ const DataTable = ({
 
   if (loading) {
     return (
-      <div className="table-loading">
-        <div>Loading...</div>
+      <div className="data-table-container" style={{ border: 'none', boxShadow: 'none' }}>
+        <LoadingState type="skeleton-table" />
       </div>
     );
   }

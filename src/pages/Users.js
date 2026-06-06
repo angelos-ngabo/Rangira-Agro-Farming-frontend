@@ -53,6 +53,7 @@ const Users = () => {
       onSuccess: () => {
         toast.success('User deleted successfully');
         queryClient.invalidateQueries('users');
+        queryClient.invalidateQueries('users-all-for-search');
       },
       onError: () => {
         toast.error('Failed to delete user');

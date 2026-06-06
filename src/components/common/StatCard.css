@@ -1,0 +1,137 @@
+.stat-card {
+  background: var(--card-bg, #ffffff);
+  border-radius: var(--radius-lg, 16px);
+  padding: 24px;
+  border: 1px solid rgba(6, 78, 59, 0.05);
+  border-left: 4px solid var(--accent-color, var(--primary-green)); /* Elegant left-accent color line */
+  box-shadow: var(--card-shadow);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  transition: var(--transition-smooth);
+  width: 100%;
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.stat-card.interactive {
+  cursor: pointer;
+}
+
+.stat-card.interactive:hover {
+  transform: translateY(-4px); /* Modern lift-up action */
+  box-shadow: var(--card-shadow-hover);
+  border-color: rgba(6, 78, 59, 0.1);
+  border-left-width: 6px; /* Thickens on hover for visual feedback */
+}
+
+.stat-card-icon-wrapper {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%; /* Elegant circular badges */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+.stat-card.interactive:hover .stat-card-icon-wrapper {
+  transform: scale(1.05);
+}
+
+.stat-card-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.stat-card-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-light, #64748b);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-card-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-dark, #0f172a);
+  line-height: 1.2;
+  margin: 0;
+}
+
+.stat-card-trend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.stat-card-trend.positive {
+  color: var(--success, #10b981);
+}
+
+.stat-card-trend.negative {
+  color: var(--error, #ef4444);
+}
+
+.stat-card-trend .trend-label {
+  color: var(--text-light, #64748b);
+  font-weight: 400;
+  margin-left: 2px;
+}
+
+/* Skeleton Loading State */
+.stat-card.loading {
+  pointer-events: none;
+}
+
+.stat-card-skeleton-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md, 8px);
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: loading-pulse 1.5s infinite;
+}
+
+.stat-card-skeleton-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stat-card-skeleton-title {
+  width: 60%;
+  height: 12px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: loading-pulse 1.5s infinite;
+}
+
+.stat-card-skeleton-value {
+  width: 40%;
+  height: 24px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: loading-pulse 1.5s infinite;
+}
+
+@keyframes loading-pulse {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

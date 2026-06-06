@@ -150,7 +150,9 @@ const BrowseCrops = () => {
                       <img
                         src={imageUrl.startsWith('http') 
                           ? imageUrl 
-                          : `${process.env.REACT_APP_API_URL ?? 'http://localhost:8081/api'}/files/crop-types/${imageUrl}`}
+                          : imageUrl.startsWith('/api/')
+                            ? `${process.env.REACT_APP_BACKEND_URL ?? 'http://localhost:8081'}${imageUrl}`
+                            : `${process.env.REACT_APP_API_URL ?? 'http://localhost:8081/api'}${item.cropImageUrl ? '/files/warehouse-access-images/' : '/files/crop-images/'}${imageUrl}`}
                         alt={item.cropType?.cropName || 'Crop'}
                         className="crop-type-image-browse"
                         onError={(e) => {

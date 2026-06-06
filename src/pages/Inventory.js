@@ -312,13 +312,16 @@ const Inventory = () => {
 
         const imageUrl = row.cropImageUrl || row.cropType?.imageUrl;
         if (imageUrl) {
-          const imageSrc = imageUrl.startsWith('http') 
-            ? imageUrl 
-            : imageUrl.startsWith('/api/')
-              ? `${process.env.REACT_APP_BACKEND_URL ?? 'http://localhost:8081'}${imageUrl}`
-              : imageUrl.startsWith('/')
-                ? `${process.env.REACT_APP_API_URL ?? 'http://localhost:8081/api'}/files/crop-types/${imageUrl}`
-                : `${process.env.REACT_APP_API_URL ?? 'http://localhost:8081/api'}/files/crop-types/${imageUrl}`;
+          let imageSrc = imageUrl;
+          if (!imageUrl.startsWith('http')) {
+            if (imageUrl.startsWith('/api/')) {
+              imageSrc = `${process.env.REACT_APP_BACKEND_URL ?? 'http://localhost:8081'}${imageUrl}`;
+            } else {
+              // Fallback for old simple filename format
+              const pathPrefix = row.cropImageUrl ? '/files/warehouse-access-images/' : '/files/crop-images/';
+              imageSrc = `${process.env.REACT_APP_API_URL ?? 'http://localhost:8081/api'}${pathPrefix}${imageUrl}`;
+            }
+          }
           return (
             <img
               src={imageSrc}

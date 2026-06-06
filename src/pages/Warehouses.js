@@ -98,6 +98,7 @@ const Warehouses = () => {
     {
       onSuccess: () => {
         queryClient.invalidateQueries(['warehouses']);
+        queryClient.invalidateQueries('warehouses-all-for-search');
         toast.success('Warehouse deleted successfully');
       },
       onError: (error) => {

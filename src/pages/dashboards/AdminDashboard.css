@@ -13,15 +13,17 @@
 }
 
 .chart-card {
-  background: #ffffff;
-  border-radius: 12px;
+  background: var(--card-bg, #ffffff);
+  border-radius: var(--radius-lg, 16px);
   padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  transition: box-shadow 0.3s ease;
+  border: 1px solid rgba(6, 78, 59, 0.05);
+  box-shadow: var(--card-shadow);
+  transition: var(--transition-smooth);
 }
 
 .chart-card:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+  box-shadow: var(--card-shadow-hover);
 }
 
 .chart-card-full {
@@ -34,14 +36,15 @@
   align-items: center;
   margin-bottom: 20px;
   padding-bottom: 16px;
-  border-bottom: 2px solid #f0f0f0;
+  border-bottom: 1px solid rgba(6, 78, 59, 0.06);
 }
 
 .chart-header h3 {
   font-size: 18px;
-  font-weight: 600;
-  color: #116530;
+  font-weight: 700;
+  color: #052e16; /* Deep forest green */
   margin: 0;
+  letter-spacing: -0.2px;
 }
 
 .chart-container {
@@ -86,41 +89,42 @@
   justify-content: center;
   gap: 12px;
   padding: 24px 16px;
-  background: #ffffff;
-  border-radius: 12px;
+  background: var(--card-bg, #ffffff);
+  border-radius: var(--radius-lg, 16px);
   text-decoration: none;
   color: #262626;
-  transition: all 0.3s ease;
-  border: 2px solid transparent;
+  transition: var(--transition-smooth);
+  border: 1px solid rgba(6, 78, 59, 0.05);
   position: relative;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--card-shadow);
 }
 
 .quick-action-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
-  border-color: #116530;
+  transform: translateY(-6px);
+  box-shadow: var(--card-shadow-hover);
+  border-color: #10b981; /* Glowing mint border on hover */
 }
 
 .quick-action-icon {
-  width: 64px;
-  height: 64px;
-  border-radius: 12px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%; /* Gorgeous circular icon badges */
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.3s ease;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .quick-action-card:hover .quick-action-icon {
-  transform: scale(1.1);
+  transform: scale(1.1) rotate(5deg);
 }
 
 .quick-action-title {
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   text-align: center;
   line-height: 1.4;
+  color: #052e16;
 }
 
 /* Recent Activity Section */
@@ -358,25 +362,26 @@
 
 /* Enhanced Summary Cards */
 .summary-card {
-  background: #ffffff;
-  border-radius: 12px;
+  background: var(--card-bg, #ffffff);
+  border-radius: var(--radius-lg, 16px);
   padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(6, 78, 59, 0.05);
+  box-shadow: var(--card-shadow);
   display: flex;
   align-items: center;
   gap: 20px;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: var(--transition-smooth);
 }
 
 .summary-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  transform: translateY(-4px);
+  box-shadow: var(--card-shadow-hover);
 }
 
 .summary-icon {
   width: 56px;
   height: 56px;
-  border-radius: 12px;
+  border-radius: 50%; /* Circle icons for summary */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -388,22 +393,25 @@
 }
 
 .summary-content h3 {
-  font-size: 14px;
-  font-weight: 500;
-  color: #666;
-  margin: 0 0 8px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-light, #64748b);
+  margin: 0 0 6px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .summary-value {
-  font-size: 28px;
-  font-weight: bold;
-  color: #116530;
+  font-size: 26px;
+  font-weight: 800;
+  color: #052e16;
   margin: 0 0 4px 0;
+  letter-spacing: -0.5px;
 }
 
 .summary-label {
   font-size: 12px;
-  color: #999;
+  color: var(--text-light, #64748b);
 }
 
 /* Stat Cards Enhancement */
