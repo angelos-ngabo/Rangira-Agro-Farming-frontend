@@ -1,13 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { AlertCircle, CheckCircle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import api from '../../services/api';
 import './BackendStatus.css';
 
 const BackendStatus = () => {
   const [isOnline, setIsOnline] = useState(null);
   const [checking, setChecking] = useState(true);
+  const isProduction = process.env.NODE_ENV === 'production';
 
   useEffect(() => {
+    if (isProduction) {
+      setChecking(false);
+      return undefined;
+    }
+
     const checkBackend = async () => {
       try {
         const response = await api.get('/health');
@@ -20,16 +26,14 @@ const BackendStatus = () => {
     };
 
     checkBackend();
-    
 
     const interval = setInterval(checkBackend, 30000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [isProduction]);
 
-  if (checking || isOnline) {
-    return null; 
-
+  if (isProduction || checking || isOnline) {
+    return null;
   }
 
   return (
