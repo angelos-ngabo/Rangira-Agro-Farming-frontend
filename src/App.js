@@ -5,7 +5,6 @@ import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import RoleRoute from './components/auth/RoleRoute';
-import BackendStatus from './components/common/BackendStatus';
 import Footer from './components/layout/Footer';
 import DashboardFooter from './components/layout/DashboardFooter';
 
@@ -96,7 +95,6 @@ function AppContent() {
 
   return (
     <div className="App" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <BackendStatus />
       <Toaster
         position="top-right"
         toastOptions={{
