@@ -58,20 +58,20 @@ const AboutPage = () => {
           </div>
         </section>
 
-        {/* Team Section */}
+        {/* Founder Section */}
         <section className="team-15 team section" id="team">
           <div className="container section-title" data-aos="fade-up">
-            <h2>Team</h2>
-            <p>Meet the dedicated team behind Rangira Agro Farming</p>
+            <h2>Founder</h2>
+            <p>Meet the person behind Rangira Agro Farming</p>
           </div>
 
           <div className="content">
             <div className="container">
-              <div className="row">
-                <div className="col-lg-3 col-md-6 mb-4">
+              <div className="row justify-content-center">
+                <div className="col-lg-4 col-md-6 mb-4">
                   <div className="person">
                     <figure>
-                      <img src={getImage('team/team-1.jpg')} alt="Image" className="img-fluid" />
+                      <img src={getImage('team/team-1.jpg')} alt="Ngabo Angelos" className="img-fluid" />
                       <div className="social">
                         <a href="#"><span className="bi bi-facebook"></span></a>
                         <a href="#"><span className="bi bi-twitter-x"></span></a>
@@ -84,58 +84,6 @@ const AboutPage = () => {
                     </div>
                   </div>
                 </div>
-
-                <div className="col-lg-3 col-md-6 mb-4">
-                  <div className="person">
-                    <figure>
-                      <img src={getImage('team/team-2.jpg')} alt="Image" className="img-fluid" />
-                      <div className="social">
-                        <a href="#"><span className="bi bi-facebook"></span></a>
-                        <a href="#"><span className="bi bi-twitter-x"></span></a>
-                        <a href="#"><span className="bi bi-linkedin"></span></a>
-                      </div>
-                    </figure>
-                    <div className="person-contents">
-                      <h3>Aline Uwase</h3>
-                      <span className="position">Operations Manager</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="col-lg-3 col-md-6 mb-4">
-                  <div className="person">
-                    <figure>
-                      <img src={getImage('team/team-3.jpg')} alt="Image" className="img-fluid" />
-                      <div className="social">
-                        <a href="#"><span className="bi bi-facebook"></span></a>
-                        <a href="#"><span className="bi bi-twitter-x"></span></a>
-                        <a href="#"><span className="bi bi-linkedin"></span></a>
-                      </div>
-                    </figure>
-                    <div className="person-contents">
-                      <h3>Patrick Mugisha</h3>
-                      <span className="position">Lead Developer</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="col-lg-3 col-md-6 mb-4">
-                  <div className="person">
-                    <figure>
-                      <img src={getImage('team/team-4.jpg')} alt="Image" className="img-fluid" />
-                      <div className="social">
-                        <a href="#"><span className="bi bi-facebook"></span></a>
-                        <a href="#"><span className="bi bi-twitter-x"></span></a>
-                        <a href="#"><span className="bi bi-linkedin"></span></a>
-                      </div>
-                    </figure>
-                    <div className="person-contents">
-                      <h3>Diane Mutesi</h3>
-                      <span className="position">Accountant</span>
-                    </div>
-                  </div>
-                </div>
-
               </div>
             </div>
           </div>
